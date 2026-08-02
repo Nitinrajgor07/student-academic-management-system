@@ -1,0 +1,478 @@
+<!-- ============================================================
+     GLOBAL TOPBAR PARTIAL — included dynamically in sidebars
+     ============================================================ -->
+<header class="topbar-global" role="banner" aria-label="Site header">
+    <!-- Left Section: Hamburger (mobile) + Breadcrumb & Title -->
+    <div class="topbar-left" style="flex-direction:row; align-items:center; gap:12px;">
+        <!-- Mobile hamburger — only visible on tablet/mobile via CSS -->
+        <button class="mobile-menu-btn" onclick="openMobileSidebar()" title="Open menu" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-sidebar">☰</button>
+        <div>
+            <nav class="breadcrumbs" id="topbar-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/">Home</a> <span class="separator" aria-hidden="true">&raquo;</span> <a>Portal</a>
+            </nav>
+            <div class="topbar-page-title" id="topbar-page-title" aria-live="polite">University System</div>
+        </div>
+    </div>
+
+    <!-- Center Section: Local Content Search Bar -->
+    <div class="topbar-center">
+        <div class="topbar-search-wrap" style="display:flex; align-items:center;">
+            <span class="topbar-search-icon" aria-hidden="true">🔍</span>
+            <input type="search" class="topbar-search-input" id="global-search-input" placeholder="Search tables and lists..." aria-label="Search page content" onkeyup="globalSearchFilter(this.value)" style="flex:1;">
+            <button class="search-clear-btn" id="global-search-clear" onclick="clearGlobalSearch()" style="display:none; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; padding:0 8px; outline:none;" title="Clear search">✕</button>
+        </div>
+    </div>
+
+    <!-- Right Section: Alerts, Messages, Theme, Profile Dropdowns -->
+    <div class="topbar-right" role="toolbar" aria-label="User actions">
+        <!-- Theme Toggle Trigger -->
+        <button class="topbar-action-btn" onclick="toggleTheme()" title="Toggle Dark/Light Theme" aria-label="Toggle dark mode">
+            <span id="theme-btn-icon" aria-hidden="true">☀️</span>
+        </button>
+
+        <!-- Messages Dropdown Wrap -->
+        <div class="topbar-dropdown-wrapper">
+            <button class="topbar-action-btn" onclick="toggleTopbarDropdown('messages', event)" title="Corporate Messages">
+                ✉️ <span class="topbar-btn-badge"></span>
+            </button>
+            <div class="topbar-dropdown" id="dropdown-messages">
+                <div class="dropdown-header">
+                    <h4>Corporate Messages</h4>
+                    <span class="badge-modern badge-success" id="messages-count-label">4 New</span>
+                </div>
+                <div class="dropdown-content-list" style="max-height: 280px; overflow-y: auto;">
+                    <!-- Message 1 -->
+                    <div class="dropdown-item" style="border-left: 3px solid var(--accent-primary); background: rgba(79, 70, 229, 0.04); display: flex; gap: 12px; padding: 12px 16px; align-items: flex-start; text-decoration: none;">
+                        <div class="dropdown-item-avatar-wrap" style="position:relative; display:flex; align-items:center;">
+                            <span class="dropdown-item-avatar" style="width:32px; height:32px; border-radius:50%; background:#4f46e5; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">G</span>
+                            <span style="position:absolute; bottom:0; right:0; width:8px; height:8px; background:var(--success); border:1.5px solid white; border-radius:50%;"></span>
+                        </div>
+                        <div class="dropdown-item-info" style="flex:1; display:flex; flex-direction:column; gap:2px;">
+                            <div style="display:flex; justify-content:space-between; align-items:baseline; width:100%;">
+                                <span class="dropdown-item-title" style="font-weight:700; color:var(--text-primary); font-size:12.5px;">Google recruiter</span>
+                                <span style="font-size:9px; color:var(--text-muted);">10m ago</span>
+                            </div>
+                            <span class="dropdown-item-desc" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Selected MCA applicants for interview loops.</span>
+                            <span class="badge-modern badge-info" style="font-size:8px; padding:1px 4px; width:fit-content; margin-top:4px; font-weight:700; border-radius:4px;">Interview Notifications</span>
+                        </div>
+                    </div>
+                    <!-- Message 2 -->
+                    <div class="dropdown-item" style="border-left: 3px solid var(--accent-primary); background: rgba(79, 70, 229, 0.04); display: flex; gap: 12px; padding: 12px 16px; align-items: flex-start; text-decoration: none;">
+                        <div class="dropdown-item-avatar-wrap" style="position:relative; display:flex; align-items:center;">
+                            <span class="dropdown-item-avatar" style="width:32px; height:32px; border-radius:50%; background:#06b6d4; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">P</span>
+                            <span style="position:absolute; bottom:0; right:0; width:8px; height:8px; background:var(--success); border:1.5px solid white; border-radius:50%;"></span>
+                        </div>
+                        <div class="dropdown-item-info" style="flex:1; display:flex; flex-direction:column; gap:2px;">
+                            <div style="display:flex; justify-content:space-between; align-items:baseline; width:100%;">
+                                <span class="dropdown-item-title" style="font-weight:700; color:var(--text-primary); font-size:12.5px;">Placement Office</span>
+                                <span style="font-size:9px; color:var(--text-muted);">1h ago</span>
+                            </div>
+                            <span class="dropdown-item-desc" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Google placement drive registration closes tonight.</span>
+                            <span class="badge-modern badge-success" style="font-size:8px; padding:1px 4px; width:fit-content; margin-top:4px; font-weight:700; border-radius:4px;">Placement Updates</span>
+                        </div>
+                    </div>
+                    <!-- Message 3 -->
+                    <div class="dropdown-item" style="display: flex; gap: 12px; padding: 12px 16px; align-items: flex-start; text-decoration: none;">
+                        <div class="dropdown-item-avatar-wrap" style="position:relative; display:flex; align-items:center;">
+                            <span class="dropdown-item-avatar" style="width:32px; height:32px; border-radius:50%; background:#22c55e; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">R</span>
+                        </div>
+                        <div class="dropdown-item-info" style="flex:1; display:flex; flex-direction:column; gap:2px;">
+                            <div style="display:flex; justify-content:space-between; align-items:baseline; width:100%;">
+                                <span class="dropdown-item-title" style="font-weight:600; color:var(--text-primary); font-size:12.5px;">Dr. Sharma (Faculty)</span>
+                                <span style="font-size:9px; color:var(--text-muted);">3h ago</span>
+                            </div>
+                            <span class="dropdown-item-desc" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Submitted grade revisions for Java Programming.</span>
+                            <span class="badge-modern badge-warning" style="font-size:8px; padding:1px 4px; width:fit-content; margin-top:4px; font-weight:700; border-radius:4px;">Student Messages</span>
+                        </div>
+                    </div>
+                    <!-- Message 4 -->
+                    <div class="dropdown-item" style="display: flex; gap: 12px; padding: 12px 16px; align-items: flex-start; text-decoration: none;">
+                        <div class="dropdown-item-avatar-wrap" style="position:relative; display:flex; align-items:center;">
+                            <span class="dropdown-item-avatar" style="width:32px; height:32px; border-radius:50%; background:#8b5cf6; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">S</span>
+                        </div>
+                        <div class="dropdown-item-info" style="flex:1; display:flex; flex-direction:column; gap:2px;">
+                            <div style="display:flex; justify-content:space-between; align-items:baseline; width:100%;">
+                                <span class="dropdown-item-title" style="font-weight:600; color:var(--text-primary); font-size:12.5px;">System Administrator</span>
+                                <span style="font-size:9px; color:var(--text-muted);">1d ago</span>
+                            </div>
+                            <span class="dropdown-item-desc" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Please upload your updated placement resume.</span>
+                            <span class="badge-modern badge-info" style="font-size:8px; padding:1px 4px; width:fit-content; margin-top:4px; font-weight:700; border-radius:4px;">Corporate Inbox</span>
+                        </div>
+                    </div>
+                </div>
+                <a class="dropdown-footer" onclick="alert('All corporate and student messages marked as read.');">Mark all as read</a>
+            </div>
+        </div>
+
+        <!-- Notifications Dropdown Wrap -->
+        <div class="topbar-dropdown-wrapper">
+            <button class="topbar-action-btn" onclick="toggleTopbarDropdown('notifications', event)" title="System Alerts" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="dropdown-notifications" style="position:relative;">
+                🔔 <span class="topbar-btn-badge" id="notifications-unread-badge" style="display:none; position:absolute; top:-2px; right:-2px; background:var(--error); color:white; font-size:9.5px; font-weight:800; padding:2px 5px; border-radius:10px; line-height:1;" aria-live="polite" aria-atomic="true">0</span>
+            </button>
+            <div class="topbar-dropdown" id="dropdown-notifications" role="menu" aria-label="Notifications">
+                <div class="dropdown-header">
+                    <h4>System Alerts</h4>
+                    <span class="badge-modern badge-info" id="notifications-count-label">0 New</span>
+                </div>
+                <div class="dropdown-content-list" id="notifications-dropdown-list" style="max-height:280px; overflow-y:auto;" role="list" aria-live="polite" aria-label="Notification items">
+                    <!-- Dynamically drawn -->
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:8px 12px; border-top:1px solid var(--glass-border); font-size:11px;">
+                    <a onclick="markAllNotificationsAsRead(event)" style="cursor:pointer; color:var(--accent-primary); font-weight:700;">Mark all read</a>
+                    <a onclick="clearAllNotifications(event)" style="cursor:pointer; color:var(--error); font-weight:700;">Clear all</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Avatar Wrap -->
+        <div class="topbar-dropdown-wrapper">
+            <button class="topbar-profile-btn" onclick="toggleTopbarDropdown('profile', event)" aria-haspopup="true" aria-expanded="false" aria-controls="dropdown-profile" aria-label="User profile menu">
+                <div class="topbar-avatar" id="topbar-user-avatar" aria-hidden="true">U</div>
+                <span class="topbar-user-name" id="topbar-user-display-name">User</span>
+            </button>
+            <div class="topbar-dropdown" id="dropdown-profile" role="menu" aria-label="Profile options">
+                <div class="dropdown-header" style="flex-direction:column; align-items:flex-start; gap:4px;">
+                    <h4 style="margin:0;">Active Session</h4>
+                    <span style="font-size:11px; color:var(--text-muted);" id="dropdown-user-role">Role Details</span>
+                </div>
+                <div class="dropdown-content-list">
+                    <!-- 1. Profile -->
+                    <a href="{% if session.get('student_id') %}/student_dashboard#profile{% else %}#{% endif %}" class="dropdown-item" onclick="{% if not session.get('student_id') %}alert('Profile configurations are handled locally for admin accounts.');{% endif %} toggleTopbarDropdown('profile')" style="display:flex; align-items:center; text-decoration:none;">
+                        <span class="dropdown-item-icon">👤</span>
+                        <div class="dropdown-item-info">
+                            <span class="dropdown-item-title">Profile</span>
+                        </div>
+                    </a>
+                    <!-- 2. Settings -->
+                    <a href="{% if session.get('student_id') %}/student_dashboard#settings{% else %}#{% endif %}" class="dropdown-item" onclick="{% if not session.get('student_id') %}alert('Settings configurations are managed inside the database.');{% endif %} toggleTopbarDropdown('profile')" style="display:flex; align-items:center; text-decoration:none;">
+                        <span class="dropdown-item-icon">⚙️</span>
+                        <div class="dropdown-item-info">
+                            <span class="dropdown-item-title">Settings</span>
+                        </div>
+                    </a>
+                    <!-- 3. Theme -->
+                    <a class="dropdown-item" onclick="toggleTheme(); toggleTopbarDropdown('profile')" style="display:flex; align-items:center; text-decoration:none;">
+                        <span class="dropdown-item-icon">🌓</span>
+                        <div class="dropdown-item-info">
+                            <span class="dropdown-item-title">Theme (Dark/Light)</span>
+                        </div>
+                    </a>
+                    <!-- 4. Help -->
+                    <a href="#" class="dropdown-item" onclick="alert('For technical support, contact IT Helpdesk: helpdesk@university.edu'); toggleTopbarDropdown('profile')" style="display:flex; align-items:center; text-decoration:none;">
+                        <span class="dropdown-item-icon">❓</span>
+                        <div class="dropdown-item-info">
+                            <span class="dropdown-item-title">Help & Support</span>
+                        </div>
+                    </a>
+                </div>
+                <a href="/logout" class="dropdown-footer" id="dropdown-logout-btn" style="color: var(--error); border-top: 1px solid var(--glass-border); text-decoration:none;">🚪 Sign Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    // Theme application immediately on loading to prevent flash
+    (function() {
+        if (localStorage.getItem('dark_theme_enabled') === '1') {
+            document.body.classList.add('dark-theme');
+        }
+    })();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Correct theme toggle icon on DOM load
+        const themeBtnIcon = document.getElementById('theme-btn-icon');
+        if (themeBtnIcon) {
+            themeBtnIcon.textContent = document.body.classList.contains('dark-theme') ? '🌙' : '☀️';
+        }
+
+        initTopbarUserDetails();
+        initTopbarBreadcrumbs();
+        initNotifications();
+    });
+
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-theme');
+        localStorage.setItem('dark_theme_enabled', isDark ? '1' : '0');
+        const themeBtnIcon = document.getElementById('theme-btn-icon');
+        if (themeBtnIcon) {
+            themeBtnIcon.textContent = isDark ? '🌙' : '☀️';
+        }
+    }
+
+    function initTopbarUserDetails() {
+        const nameSpan = document.getElementById('topbar-user-display-name');
+        const avatarDiv = document.getElementById('topbar-user-avatar');
+        const roleSpan = document.getElementById('dropdown-user-role');
+        const logoutLink = document.getElementById('dropdown-logout-btn');
+        
+        {% if session.get('admin_logged_in') %}
+            nameSpan.textContent = 'Admin Portal';
+            avatarDiv.textContent = 'A';
+            roleSpan.textContent = 'Administrator Access';
+            logoutLink.href = '/logout';
+        {% elif session.get('student_id') %}
+            nameSpan.textContent = 'Student Portal';
+            avatarDiv.textContent = 'S';
+            roleSpan.textContent = 'Student ID: #{{ session.get("student_id") }}';
+            logoutLink.href = '/logout';
+        {% else %}
+            nameSpan.textContent = 'Guest Portal';
+            avatarDiv.textContent = 'G';
+            roleSpan.textContent = 'Public Access';
+            logoutLink.href = '/';
+        {% endif %}
+    }
+
+    function initTopbarBreadcrumbs() {
+        const path = window.location.pathname;
+        const crumbs = document.getElementById('topbar-breadcrumbs');
+        const title = document.getElementById('topbar-page-title');
+        
+        const pathsMap = {
+            '/student_dashboard': { root: 'Portal', page: 'Dashboard' },
+            '/student_attendance': { root: 'Academics', page: 'Class Attendance' },
+            '/timetable': { root: 'Academics', page: 'Time Table' },
+            '/internal_marks': { root: 'Academics', page: 'Internal Marks' },
+            '/final_marks': { root: 'Academics', page: 'Final Marks' },
+            '/combined_marks': { root: 'Academics', page: 'Combined Performance' },
+            '/results': { root: 'Examination', page: 'Results Report' },
+            '/fees': { root: 'Finance', page: 'Fee Statement' },
+            '/notices': { root: 'Information', page: 'Notice Board' },
+            '/certificates': { root: 'Documents', page: 'Certificates Manager' },
+            // Admin side routes
+            '/admin': { root: 'Admin', page: 'Control Panel' },
+            '/attendance': { root: 'Admin', page: 'Daily Attendance' },
+            '/marks': { root: 'Admin', page: 'Marks Management' },
+            '/admin_fees': { root: 'Admin', page: 'Fees Sourcing' },
+            '/admin_notices': { root: 'Admin', page: 'Notices Board Config' },
+            '/admin_certificates': { root: 'Admin', page: 'Certificates List' },
+            '/add_student_page': { root: 'Students', page: 'Register New Student' },
+            '/analytics': { root: 'Students', page: 'Campus Sourcing Analytics' },
+        };
+        
+        const current = pathsMap[path] || { root: 'Portal', page: 'University Dashboard' };
+        
+        crumbs.innerHTML = `<a href="/">Home</a> <span class="separator">&raquo;</span> <a>${current.root}</a> <span class="separator">&raquo;</span> <a>${current.page}</a>`;
+        title.textContent = current.page;
+    }
+
+    function toggleTopbarDropdown(type, event) {
+        if (event) event.stopPropagation();
+
+        const dropdowns = ['messages', 'notifications', 'profile'];
+        dropdowns.forEach(d => {
+            const dropdown = document.getElementById('dropdown-' + d);
+            if (d === type) {
+                dropdown.classList.toggle('active');
+            } else {
+                dropdown.classList.remove('active');
+            }
+        });
+    }
+
+    // Dynamic filtering for current page tables or list items with highlight highlights and clear buttons
+    function globalSearchFilter(value) {
+        const searchVal = value.toLowerCase().trim();
+        const clearBtn = document.getElementById('global-search-clear');
+        if (clearBtn) {
+            clearBtn.style.display = searchVal ? 'block' : 'none';
+        }
+
+        const rows = document.querySelectorAll('.table-modern tbody tr, .notice-card');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchVal) ? '' : 'none';
+            
+            // Remove previous highlights
+            removeSearchHighlight(row);
+            
+            // Add new highlights if matching
+            if (searchVal && text.includes(searchVal)) {
+                applySearchHighlight(row, searchVal);
+            }
+        });
+    }
+
+    function clearGlobalSearch() {
+        const input = document.getElementById('global-search-input');
+        if (input) {
+            input.value = '';
+            globalSearchFilter('');
+        }
+    }
+
+    function applySearchHighlight(element, query) {
+        // Only walk through child elements that contain text
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+        const nodesToReplace = [];
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
+            if (node.parentNode.tagName === 'MARK' || node.parentNode.classList.contains('no-highlight') || node.parentNode.tagName === 'SCRIPT' || node.parentNode.tagName === 'STYLE') continue;
+            const text = node.nodeValue;
+            if (text.toLowerCase().includes(query)) {
+                nodesToReplace.push(node);
+            }
+        }
+        nodesToReplace.forEach(node => {
+            const text = node.nodeValue;
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+            const span = document.createElement('span');
+            span.innerHTML = text.replace(regex, '<mark style="background:#fef08a; color:#0f172a; padding:0 2px; border-radius:2px;">$1</mark>');
+            node.parentNode.replaceChild(span, node);
+        });
+    }
+
+    function removeSearchHighlight(element) {
+        element.querySelectorAll('mark').forEach(mark => {
+            const parent = mark.parentNode;
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize();
+        });
+    }
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Global Multi-role Notification system configuration
+    let currentRole = 'guest';
+    {% if session.get('admin_logged_in') %}
+        currentRole = 'admin';
+    {% elif session.get('student_id') %}
+        currentRole = 'student';
+    {% endif %}
+
+    const defaultNotifications = [
+        { id: 1, role: 'student', icon: '📢', title: 'Semester Exams schedule released', desc: 'Verify your examination slot timings inside results tab.', read: false, time: 'Just now' },
+        { id: 2, role: 'student', icon: '💳', title: 'Tuition Fee demand generated', desc: 'Make payment on portal before July 25 to prevent fine.', read: false, time: '2 hours ago' },
+        { id: 3, role: 'student', icon: '💼', title: 'Google placement drive open', desc: 'Applications are now active for Software Engineers (MCA/BTech).', read: false, time: '1 day ago' },
+        { id: 4, role: 'admin', icon: '🚨', title: 'System Load Warning', desc: 'Memory utilization is near 88% due to batch calculations.', read: false, time: '5 mins ago' },
+        { id: 5, role: 'admin', icon: '🤝', title: 'New Recruiter registration', desc: 'Microsoft Corp. requested portal credentials for placement sourcing.', read: false, time: '1 hour ago' },
+        { id: 6, role: 'admin', icon: '📝', title: 'Student Grade revision request', desc: 'Student #MCA-103 submitted marks evaluation claims.', read: false, time: '3 hours ago' },
+        { id: 7, role: 'company', icon: '📄', title: 'Candidate Resume uploaded', desc: 'A new MCA graduate updated their placement portfolio.', read: false, time: 'Just now' },
+        { id: 8, role: 'company', icon: '📆', title: 'Interview slot accepted', desc: 'Student accepted Software Engineer Technical round at 10:30 AM.', read: false, time: '40 mins ago' }
+    ];
+
+    function initNotifications() {
+        if (!localStorage.getItem('portal_notifications')) {
+            localStorage.setItem('portal_notifications', JSON.stringify(defaultNotifications));
+        }
+        renderNotifications();
+    }
+
+    function renderNotifications() {
+        const list = document.getElementById('notifications-dropdown-list');
+        const badge = document.getElementById('notifications-unread-badge');
+        const countLabel = document.getElementById('notifications-count-label');
+        if (!list) return;
+
+        const allNotifications = JSON.parse(localStorage.getItem('portal_notifications')) || [];
+        const roleFiltered = allNotifications.filter(n => n.role === currentRole);
+        const unreadCount = roleFiltered.filter(n => !n.read).length;
+
+        list.innerHTML = '';
+
+        if (roleFiltered.length === 0) {
+            list.innerHTML = `
+                <div style="text-align:center; padding:24px 12px; color:var(--text-muted); font-size:12px;">
+                    <div>📭</div>
+                    <div style="margin-top:4px;">No alerts or notifications.</div>
+                </div>
+            `;
+            if (badge) badge.style.display = 'none';
+            if (countLabel) countLabel.textContent = '0 New';
+            return;
+        }
+
+        // Draw badge
+        if (unreadCount > 0) {
+            if (badge) {
+                badge.style.display = 'block';
+                badge.textContent = unreadCount;
+            }
+            if (countLabel) {
+                countLabel.textContent = `${unreadCount} New`;
+                countLabel.className = 'badge-modern badge-success';
+            }
+        } else {
+            if (badge) badge.style.display = 'none';
+            if (countLabel) {
+                countLabel.textContent = '0 New';
+                countLabel.className = 'badge-modern badge-info';
+            }
+        }
+
+        roleFiltered.forEach(n => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.style.cursor = 'pointer';
+            item.style.transition = 'background 0.2s';
+            if (!n.read) {
+                item.style.background = 'rgba(79, 70, 229, 0.04)';
+                item.style.borderLeft = '3px solid var(--accent-primary)';
+            } else {
+                item.style.opacity = '0.75';
+            }
+
+            item.onclick = (e) => {
+                e.stopPropagation();
+                toggleNotificationReadState(n.id);
+            };
+
+            item.innerHTML = `
+                <span class="dropdown-item-icon">${n.icon}</span>
+                <div class="dropdown-item-info" style="flex:1;">
+                    <span class="dropdown-item-title" style="font-weight:${n.read ? '600' : '800'}; color:var(--text-primary); font-size:12.5px;">${n.title}</span>
+                    <span class="dropdown-item-desc" style="font-size:11px; margin-top:2px;">${n.desc}</span>
+                    <span style="font-size:9.5px; color:var(--text-muted); margin-top:4px; display:block;">⏱️ ${n.time}</span>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    function toggleNotificationReadState(id) {
+        const allNotifications = JSON.parse(localStorage.getItem('portal_notifications')) || [];
+        const index = allNotifications.findIndex(n => n.id === id);
+        if (index !== -1) {
+            allNotifications[index].read = !allNotifications[index].read;
+            localStorage.setItem('portal_notifications', JSON.stringify(allNotifications));
+            renderNotifications();
+        }
+    }
+
+    function markAllNotificationsAsRead(event) {
+        if (event) event.stopPropagation();
+        const allNotifications = JSON.parse(localStorage.getItem('portal_notifications')) || [];
+        allNotifications.forEach(n => {
+            if (n.role === currentRole) {
+                n.read = true;
+            }
+        });
+        localStorage.setItem('portal_notifications', JSON.stringify(allNotifications));
+        renderNotifications();
+    }
+
+    function clearAllNotifications(event) {
+        if (event) event.stopPropagation();
+        const allNotifications = JSON.parse(localStorage.getItem('portal_notifications')) || [];
+        const remaining = allNotifications.filter(n => n.role !== currentRole);
+        localStorage.setItem('portal_notifications', JSON.stringify(remaining));
+        renderNotifications();
+    }
+
+    // Close open dropdown wrappers on clicks outside the widgets
+    window.addEventListener('click', () => {
+        document.querySelectorAll('.topbar-dropdown').forEach(d => {
+            d.classList.remove('active');
+        });
+    });
+
+    // Prevent clicks inside the dropdowns from automatically closing them
+    document.querySelectorAll('.topbar-dropdown').forEach(d => {
+        d.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
+</script>

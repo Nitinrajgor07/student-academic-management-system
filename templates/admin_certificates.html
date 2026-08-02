@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Admin - Certificates</title>
+    <style>
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .tag-Pending {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+
+        .tag-Approved {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .tag-Rejected {
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error-border);
+        }
+
+        .act-btn {
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-right: 12px;
+            transition: var(--transition);
+        }
+        
+        .approve {
+            color: var(--success);
+        }
+        .approve:hover {
+            text-decoration: underline;
+        }
+
+        .reject {
+            color: var(--error);
+        }
+        .reject:hover {
+            text-decoration: underline;
+        }
+
+        .prio-High {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error-border);
+        }
+        .prio-Medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+        .prio-Low {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'certificates' %}
+{% include 'admin_sidebar.html' %}
+
+<div class="page-header">
+    <h2>🎖️ Certificate &amp; Administrative Requests Approvals</h2>
+</div>
+
+<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+    <div class="card-title" style="margin: 20px 20px 10px 20px; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">📋 Student Requests Log</div>
+    {% if requests %}
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th style="padding-left: 24px;">Request ID</th>
+                    <th>Student Name</th>
+                    <th>Enrollment Number</th>
+                    <th>Request Type</th>
+                    <th>Reason</th>
+                    <th>Requested On</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in requests %}
+                <tr>
+                    <td style="padding-left: 24px; font-weight: 700; color: var(--text-secondary);">#{{ r[0] }}</td>
+                    <td style="font-weight: 600; color: var(--text-primary);">{{ r[1] }}</td>
+                    <td style="font-family: monospace; font-size: 13px;">{{ r[2] }}</td>
+                    <td style="font-weight: 500;">{{ r[3] }}</td>
+                    <td style="color: var(--text-secondary);">{{ r[4] or '—' }}</td>
+                    <td style="color: var(--text-secondary); font-size: 13px;">{{ r[6] }}</td>
+                    <td><span class="badge-modern prio-{{ r[7] or 'Medium' }}">{{ r[7] or 'Medium' }}</span></td>
+                    <td><span class="badge-modern tag-{{ r[5] }}">{{ r[5] }}</span></td>
+                    <td>
+                        {% if r[5] == 'Pending' %}
+                        <a class="act-btn approve" href="/admin/update_certificate/{{ r[0] }}/Approved">Approve</a>
+                        <a class="act-btn reject" href="/admin/update_certificate/{{ r[0] }}/Rejected">Reject</a>
+                        {% else %} — {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="color: var(--text-muted); text-align: center; padding: 40px; font-weight: 500;">No requests found.</div>
+    {% endif %}
+</div>
+
+</div></div>
+</body>
+</html>

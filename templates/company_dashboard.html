@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'base_head.html' %}
+    <title>Campus Recruitment Portal — Company Dashboard</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <style>
+        /* Recruitment Portal Grid overrides */
+        .portal-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .portal-sidebar {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.25) 100%);
+            border-right: 1px solid var(--glass-border);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            backdrop-filter: blur(12px);
+        }
+
+        .portal-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+            width: 100%;
+        }
+
+        .portal-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--text-primary);
+            border-color: var(--glass-border);
+        }
+
+        .portal-nav-btn.active {
+            background: var(--accent-gradient);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        /* Stats Grid 8 columns */
+        .stats-grid-8 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1100px) {
+            .stats-grid-8 { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .stats-grid-8 { grid-template-columns: 1fr; }
+        }
+
+        /* PDF Viewer Mockup styling */
+        .pdf-viewer-mockup {
+            background: #f1f5f9;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 480px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+        }
+
+        .pdf-toolbar {
+            background: #1e293b;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ffffff;
+            font-size: 11.5px;
+            border-bottom: 1px solid #0f172a;
+        }
+
+        .pdf-toolbar-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .pdf-toolbar-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .pdf-page-canvas {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            background: #64748b;
+        }
+
+        .pdf-page-sheet {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffff;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            min-height: 560px;
+        }
+
+        /* Student Search form layout */
+        .search-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 900px) {
+            .search-filter-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 550px) {
+            .search-filter-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Stage badge colors */
+        .stage-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .stage-applied { background: rgba(0,0,0,0.05); color: var(--text-muted); }
+        .stage-shortlisted { background: rgba(6, 182, 212, 0.08); color: var(--accent-secondary); }
+        .stage-interviewing { background: rgba(79, 70, 229, 0.08); color: var(--accent-primary); }
+        .stage-offered { background: rgba(245, 158, 11, 0.08); color: #d97706; }
+        .stage-selected { background: var(--success-bg); color: var(--success); }
+        .stage-rejected { background: var(--error-bg); color: var(--error); }
+    </style>
+</head>
+<body style="padding: 0; background: radial-gradient(circle at 10% 20%, rgba(243, 244, 246, 0.4) 0%, rgba(229, 231, 235, 0.4) 100%);">
+
+<div class="portal-layout">
+    
+    <!-- Sidebar Navigation -->
+    <div class="portal-sidebar">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; padding-left:8px;">
+            <span style="font-size:24px;">💼</span>
+            <div style="display:flex; flex-direction:column;">
+                <strong style="font-family:'Outfit',sans-serif; font-size:15px; color:var(--text-primary);" id="sidebar-company-name">{{ company.name }}</strong>
+                <span style="font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Recruiter Access</span>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+            <button class="portal-nav-btn active" onclick="switchSection('dashboard', this)">🏠 Dashboard Overview</button>
+            <button class="portal-nav-btn" onclick="switchSection('search', this)">🔍 Sourcing Directories</button>
+            <button class="portal-nav-btn" onclick="switchSection('vacancies', this)">💼 Job Vacancies</button>
+            <button class="portal-nav-btn" onclick="switchSection('applications', this)">📁 Sourced Applicants</button>
+            <button class="portal-nav-btn" onclick="switchSection('analytics', this)">📈 Recruitment Analytics</button>
+            <button class="portal-nav-btn" onclick="switchSection('profile', this)">🏢 Company Profile</button>
+        </div>
+
+        <div style="border-top: 1px solid rgba(0,0,0,0.06); padding-top:12px;">
+            <a href="/company_logout" class="portal-nav-btn" style="text-decoration:none; color:var(--error);">🚪 Recruiter Sign Out</a>
+        </div>
+    </div>
+
+    <!-- Main Workspace Area -->
+    <div style="padding: 24px; overflow-y:auto; max-height:100vh;">
+        
+        <!-- Header status bar -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <h2 style="font-family:'Outfit',sans-serif; font-weight:800; font-size:22px; color:var(--text-primary);" id="section-title">Dashboard Overview</h2>
+            <div style="font-size:12px; color:var(--text-secondary);" id="topbar-date">Active Drive: Campus Recruitment Drive</div>
+        </div>
+
+        <!-- ================= SECTION: DASHBOARD OVERVIEW ================= -->
+        <div id="section-dashboard" class="section-content-pane">
+            
+            <!-- 8 KPI Metrics row -->
+            <div class="stats-grid-8">
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Total Candidates</span><span>👥</span></div>
+                    <div class="kpi-value" id="stat-total">0</div>
+                    <div class="kpi-footer-badge badge-info">Talent Pool</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Eligible Students</span><span>🎓</span></div>
+                    <div class="kpi-value" id="stat-eligible">0</div>
+                    <div class="kpi-footer-badge badge-success">CGPA &gt; 8.0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Applications Today</span><span>📥</span></div>
+                    <div class="kpi-value" id="stat-applications">0</div>
+                    <div class="kpi-footer-badge badge-info">Active</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Shortlisted</span><span>🎖️</span></div>
+                    <div class="kpi-value" id="stat-shortlisted">0</div>
+                    <div class="kpi-footer-badge badge-warning">Pipeline</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Interviews Scheduled</span><span>📅</span></div>
+                    <div class="kpi-value" id="stat-interviews">0</div>
+                    <div class="kpi-footer-badge badge-info">Scheduled</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Offers Extended</span><span>🎉</span></div>
+                    <div class="kpi-value" id="stat-offers">0</div>
+                    <div class="kpi-footer-badge badge-success">Extended</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Selected Students</span><span>🏆</span></div>
+                    <div class="kpi-value" id="stat-selected">0</div>
+                    <div class="kpi-footer-badge badge-success">Hired</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-header"><span>Average CGPA</span><span>📊</span></div>
+                    <div class="kpi-value" id="stat-avg-gpa">0.0</div>
+                    <div class="kpi-footer-badge badge-info">Pool Mean</div>
+                </div>
+            </div>
+
+            <!-- Recruitment Funnel Quick Widget -->
+            <div class="dashboard-grid col-12" style="margin-top:0;">
+                <div class="glass-card col-8">
+                    <div class="card-header-premium" style="margin-bottom:16px;">📂 Recent Applications</div>
+                    <div class="table-container" style="border:none;">
+                        <table class="table-modern">
+                            <thead>
+                                <tr>
+                                    <th>Candidate Name</th>
+                                    <th>Course</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quick-pipeline-tbody">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Activities Logs -->
+                <div class="glass-card col-4">
+                    <div class="card-header-premium" style="margin-bottom:16px;">⏱️ Recruiter Sourcing Activity</div>
+                    <div style="display:flex; flex-direction:column; gap:14px;" id="activity-log-container">
+                        <!-- Simulated logs -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= SECTION: STUDENT SEARCH ================= -->
+        <div id="section-search" class="section-content-pane" style="display:none;">
+            <div class="glass-card" style="padding:24px; margin-bottom:24px;">
+                <div class="card-header-premium" style="margin-bottom:16px;">🔍 Detailed Sourcing Filters</div>
+                
+                <div class="search-filter-grid">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Search Candidate Name</label>
+                        <input type="text" id="filter-name" class="input-modern" placeholder="Enter Name..." oninput="triggerSourcingSearch()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Course / Department</label>
+                        <select id="filter-course" class="input-modern" onchange="triggerSourcingSearch()">
+                            <option value="">All Programs</option>
+                            <option value="MCA">MCA (Computer Applications)</option>
+                            <option value="BCA">BCA (Computer Science)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Active Semester</label>
+                        <select id="filter-semester" class="input-modern" onchange="triggerSourcingSearch()">
+                            <option value="">All Terms</option>
+                            <option value="3">Semester 3</option>
+                            <option value="2">Semester 2</option>
+                            <option value="1">Semester 1</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Minimum CGPA Criteria</label>
+                        <select id="filter-gpa" class="input-modern" onchange="triggerSourcingSearch()">
+                            <option value="0">Show All Candidates</option>
+                            <option value="8">CGPA &gt;= 8.0 (Honors)</option>
+                            <option value="7">CGPA &gt;= 7.0 (First Class)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="search-filter-grid">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Core Tech Skill</label>
+                        <select id="filter-skills" class="input-modern" onchange="triggerSourcingSearch()">
+                            <option value="">All Core Skills</option>
+                            <option value="Java">Java OOP</option>
+                            <option value="Python">Python Development</option>
+                            <option value="Machine Learning">Machine Learning</option>
+                            <option value="Web Development">Web Development</option>
+                            <option value="SQL">SQL DBMS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Resume Sourced</label>
+                        <select id="filter-resume" class="input-modern" onchange="triggerSourcingSearch()">
+                            <option value="">Either</option>
+                            <option value="yes">Uploaded Resumes Only</option>
+                            <option value="no">No Resume Uploaded</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:11px;">Placement Status</label>
+                        <select id="filter-status" class="input-modern" onchange="triggerSourcingSearch()">
+                            <option value="">All Statuses</option>
+                            <option value="Applied">Applied</option>
+                            <option value="Shortlisted">Shortlisted</option>
+                            <option value="Interviewing">Interviewing</option>
+                            <option value="Offered">Offered</option>
+                            <option value="Selected">Selected</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button class="btn-modern btn-secondary" style="width:100%; height:40px;" onclick="resetSourcingFilters()">Reset Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Directory Table -->
+            <div class="glass-card" style="padding:0; overflow:hidden;">
+                <div class="card-title-bar" style="padding:16px 24px;">
+                    <span class="card-title" id="sourcing-results-count">Sourced Candidates Directory</span>
+                </div>
+                <div class="table-container" style="border:none;">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:24px; width:70px; text-align:center;">SR. NO.</th>
+                                <th>Name</th>
+                                <th>Enrollment</th>
+                                <th>Course</th>
+                                <th>Semester</th>
+                                <th>CGPA</th>
+                                <th>Resume</th>
+                                <th>Pipeline</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sourcing-tbody">
+                            <!-- Rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SECTION: JOB APPLICATIONS ================= -->
+        <div id="section-applications" class="section-content-pane" style="display:none;">
+            <div class="glass-card" style="padding:0; overflow:hidden;">
+                <div class="card-title-bar" style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center;">
+                    <span class="card-title" id="pipeline-total-indicator">Active Recruiter Pipeline</span>
+                </div>
+                <div class="table-container" style="border:none;">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:24px; width:70px; text-align:center;">SR. NO.</th>
+                                <th>Student</th>
+                                <th>Department</th>
+                                <th>Semester</th>
+                                <th>CGPA</th>
+                                <th>Resume</th>
+                                <th>Status</th>
+                                <th style="text-align:right; padding-right:24px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pipeline-tbody">
+                            <!-- Rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SECTION: RECRUITMENT ANALYTICS ================= -->
+        <div id="section-analytics" class="section-content-pane" style="display:none;">
+            <div class="dashboard-grid col-12" style="margin-top:0; margin-bottom:24px;">
+                <!-- Hiring Funnel -->
+                <div class="glass-card col-6" style="padding:24px; min-height:360px;">
+                    <div class="card-header-premium" style="margin-bottom:16px;">📊 Recruitment Hiring Funnel</div>
+                    <div style="position:relative; height:280px;"><canvas id="chart-funnel"></canvas></div>
+                </div>
+                <!-- Department Distribution -->
+                <div class="glass-card col-6" style="padding:24px; min-height:360px;">
+                    <div class="card-header-premium" style="margin-bottom:16px;">🍩 Candidate Program Ratio</div>
+                    <div style="position:relative; height:280px;"><canvas id="chart-departments"></canvas></div>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid col-12" style="margin-top:0;">
+                <!-- Monthly Applications -->
+                <div class="glass-card col-6" style="padding:24px; min-height:360px;">
+                    <div class="card-header-premium" style="margin-bottom:16px;">📈 Monthly Applications Rate</div>
+                    <div style="position:relative; height:280px;"><canvas id="chart-monthly"></canvas></div>
+                </div>
+                <!-- CGPA Distribution -->
+                <div class="glass-card col-6" style="padding:24px; min-height:360px;">
+                    <div class="card-header-premium" style="margin-bottom:16px;">📊 Pool CGPA Score Banding</div>
+                    <div style="position:relative; height:280px;"><canvas id="chart-gpa-dist"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SECTION: JOB VACANCIES ================= -->
+        <div id="section-vacancies" class="section-content-pane" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="font-family:'Outfit',sans-serif; font-size:15px; font-weight:800; color:var(--text-primary); text-transform:uppercase; margin:0;">💼 Manage Posted Vacancies</h3>
+                <button class="btn-modern btn-primary" onclick="openCompanyAddModal()">Post New Vacancy</button>
+            </div>
+            
+            <div class="glass-card" style="padding:0; overflow:hidden;">
+                <div class="table-container" style="border:none;">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:24px;">Role/Designation</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Package (LPA)</th>
+                                <th>Cutoff</th>
+                                <th>Openings</th>
+                                <th>Deadline</th>
+                                <th>Status</th>
+                                <th style="text-align:right; padding-right:24px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="company-vacancies-tbody">
+                            <!-- Rendered dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPANY ADD/EDIT VACANCY MODAL -->
+        <div class="project-modal-backdrop" id="company-vacancy-modal" style="z-index: 10000; display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.15); backdrop-filter:blur(8px); justify-content:center; align-items:center;">
+            <div class="glass-card" style="width: 90%; max-width: 550px; padding: 24px; background:#ffffff;">
+                <form id="company-vacancy-form" method="POST" action="/company/vacancies/add">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom:12px;">
+                        <h3 id="company-modal-heading" style="font-size:16px; font-weight:800; font-family:'Outfit',sans-serif; color:var(--text-primary); margin:0;">➕ Post New Vacancy</h3>
+                        <button type="button" class="btn-modern btn-secondary" onclick="closeCompanyVacancyModal()" style="padding:4px 10px; font-size:12px;">Cancel</button>
+                    </div>
+                    
+                    <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:12px; gap:12px;">
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Job Designation / Role</label>
+                            <input type="text" id="comp-form-job-title" name="job_title" class="input-modern" placeholder="e.g. Software Engineer" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Job Type</label>
+                            <select id="comp-form-job-type" name="job_type" class="input-modern" style="width:100%; height: 38px;">
+                                <option value="Internship">Internship</option>
+                                <option value="Full-Time">Full-Time</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Company Logo URL (Optional)</label>
+                        <input type="text" id="comp-form-logo-url" name="logo_url" class="input-modern" placeholder="https://upload.wikimedia.org/wikipedia/...logo.svg">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Eligible Programs / Courses</label>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; background:rgba(0,0,0,0.02); padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); max-height:100px; overflow-y:auto;">
+                            {% for dept in departments %}
+                            <label style="display:flex; align-items:center; gap:6px; font-size:11.5px;">
+                                <input type="checkbox" name="eligible_departments" value="{{ dept }}" class="comp-dept-checkbox">
+                                {{ dept }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" id="comp-form-eligible-departments-str" name="eligible_departments_str">
+                    </div>
+
+                    <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:12px; gap:12px;">
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Location</label>
+                            <input type="text" id="comp-form-location" name="location" class="input-modern" placeholder="e.g. Bangalore, Remote" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Package Offered (LPA Description)</label>
+                            <input type="text" id="comp-form-package" name="package_lpa" class="input-modern" placeholder="e.g. ₹12 LPA" required>
+                        </div>
+                    </div>
+
+                    <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:16px; gap:12px;">
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">CGPA Cutoff Required</label>
+                            <input type="number" step="0.1" min="0.0" max="10.0" id="comp-form-cgpa" name="cgpa_required" class="input-modern" placeholder="e.g. 7.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Vacancies Spot Count</label>
+                            <input type="number" id="comp-form-spots" name="vacancies_count" class="input-modern" placeholder="e.g. 10" required>
+                        </div>
+                    </div>
+
+                    <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:16px; gap:12px;">
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Last Date to Apply</label>
+                            <input type="date" id="comp-form-lastdate" name="last_date" class="input-modern" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Eligible Semester</label>
+                            <select id="comp-form-semester" name="eligible_semester" class="input-modern" style="width:100%; height: 38px;">
+                                <option value="All">All Semesters</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:16px; gap:12px;">
+                        <div class="form-group" id="comp-status-group" style="display:none;">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Status</label>
+                            <select id="comp-form-status" name="status" class="input-modern" style="width:100%; height: 38px;">
+                                <option value="Open">Open</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Required Skills (Comma separated)</label>
+                            <input type="text" id="comp-form-skills" name="skills_required" class="input-modern" placeholder="e.g. Java, Python, SQL" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Job Description</label>
+                        <textarea id="comp-form-description" name="description" class="input-modern" style="height:60px; resize:none;" placeholder="Describe the job role, day-to-day responsibilities, perks, etc..."></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1px solid rgba(0,0,0,0.06); padding-top:16px;">
+                        <button type="button" class="btn-modern btn-secondary" onclick="closeCompanyVacancyModal()">Cancel</button>
+                        <button type="submit" class="btn-modern btn-primary" id="comp-form-submit-btn">Save Vacancy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================= SECTION: COMPANY PROFILE ================= -->
+        <div id="section-profile" class="section-content-pane" style="display:none;">
+            <div class="dashboard-grid col-12" style="margin-top:0;">
+                
+                <!-- Profile Settings edit -->
+                <div class="glass-card col-8" style="padding:24px;">
+                    <div class="card-header-premium" style="margin-bottom:16px;">🏢 Company Recruiter Settings</div>
+                    
+                    <form action="/company/profile/save" method="POST" style="display:contents;">
+                        <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:12px; gap:12px;">
+                            <div class="form-group">
+                                <label class="form-label">Company Name</label>
+                                <input type="text" name="name" class="input-modern" value="{{ company.name or '' }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">HR Name</label>
+                                <input type="text" name="hr_name" class="input-modern" value="{{ company.hr_name or '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:12px; gap:12px;">
+                            <div class="form-group">
+                                <label class="form-label">Official Email</label>
+                                <input type="email" name="email" class="input-modern" value="{{ company.email or '' }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">HR Phone Contact</label>
+                                <input type="text" name="phone" class="input-modern" value="{{ company.phone or '' }}" placeholder="e.g. +91 98765-43210">
+                            </div>
+                        </div>
+
+                        <div class="search-filter-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:12px; gap:12px;">
+                            <div class="form-group">
+                                <label class="form-label">Website URL</label>
+                                <input type="url" name="website" class="input-modern" value="{{ company.website or '' }}" placeholder="https://company.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Recruitment Category / Industry</label>
+                                <input type="text" name="industry" class="input-modern" value="{{ company.industry or '' }}" placeholder="e.g. Technology, Finance">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label class="form-label">Company Logo URL</label>
+                            <input type="text" name="logo_url" class="input-modern" value="{{ company.logo_url or '' }}" placeholder="https://upload.wikimedia.org/...logo.png">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label class="form-label">Address</label>
+                            <input type="text" name="address" class="input-modern" value="{{ company.address or '' }}" placeholder="e.g. Sector 62, Noida">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label class="form-label">About Company</label>
+                            <textarea name="about" class="input-modern" style="height:80px; resize:none;" placeholder="Describe your corporate talent programs, technical scopes...">{{ company.about or '' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn-modern btn-primary">💾 Save Profile Settings</button>
+                    </form>
+                </div>
+
+                <!-- Preview Info -->
+                <div class="glass-card col-4" style="padding:24px;">
+                    <div class="card-header-premium" style="margin-bottom:16px;">👁️ Live Preview</div>
+                    
+                    <div style="text-align:center; padding:12px 0;">
+                        <div id="preview-logo-wrap" style="font-size:36px; margin-bottom:10px;">
+                            {% if company.logo_url %}
+                            <img src="{{ company.logo_url }}" style="max-height: 50px; max-width: 120px; object-fit: contain;" alt="Logo">
+                            {% else %}
+                            🏢
+                            {% endif %}
+                        </div>
+                        <h3 style="font-size:16px; font-weight:800; color:var(--text-primary);" id="preview-disp-name">{{ company.name or 'Company Name' }}</h3>
+                        <span class="badge-modern badge-success" style="margin-top:6px;" id="preview-disp-industry">{{ company.industry or 'Industry' }}</span>
+                    </div>
+
+                    <div style="font-size:12px; color:var(--text-secondary); display:flex; flex-direction:column; gap:10px; margin-top:16px; border-top:1px solid rgba(0,0,0,0.05); padding-top:12px;">
+                        <div>💻 Website: <strong id="preview-disp-website">{{ company.website or 'Not Configured' }}</strong></div>
+                        <div>👑 HR Name: <strong id="preview-disp-hr">{{ company.hr_name or 'Not Configured' }}</strong></div>
+                        <div>📧 HR Email: <strong id="preview-disp-email">{{ company.email or 'Not Configured' }}</strong></div>
+                        <div>📞 Contact: <strong id="preview-disp-phone">{{ company.phone or 'Not Configured' }}</strong></div>
+                        <div>📍 Address: <strong id="preview-disp-address">{{ company.address or 'Not Configured' }}</strong></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- OVERLAY CORPORATE STUDENT PROFILE & PDF PREVIEW MODAL -->
+<div class="project-modal-backdrop" id="recruiter-resume-preview-modal" style="z-index: 10000; display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.15); backdrop-filter:blur(8px); justify-content:center; align-items:center;">
+    <div class="glass-card" style="width: 95%; max-width: 950px; padding: 24px; max-height: 90vh; overflow-y: auto;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom:12px;">
+            <h3 style="font-size:18px; font-weight:800; font-family:'Outfit',sans-serif; color:var(--text-primary);">🎓 Recruiter Candidate Portfolio Sheet</h3>
+            <button class="btn-modern btn-secondary" onclick="closeRecruiterResumePreview()" style="padding:6px 12px; font-size:12px;">Close Details</button>
+        </div>
+
+        <div class="dashboard-grid col-12" style="margin-top:0;">
+            <!-- Left Pane: Candidate Metadata Profile (Col-5) -->
+            <div class="col-5" style="display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; gap:16px; align-items:center;">
+                    <div id="candidate-modal-avatar" style="width:60px; height:60px; border-radius:50%; background:var(--accent-gradient); color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; justify-content:center; font-family:'Outfit',sans-serif;">ST</div>
+                    <div>
+                        <h4 style="font-size:16px; font-weight:800; color:var(--text-primary);" id="candidate-modal-name">Student Name</h4>
+                        <span style="font-size:11px; color:var(--text-muted);" id="candidate-modal-enrollment">JU-MCA-2026-9000</span>
+                    </div>
+                </div>
+
+                <div style="font-size:12px; display:flex; flex-direction:column; gap:8px; border-top:1px solid rgba(0,0,0,0.04); padding-top:12px;">
+                    <div>🏛️ Department: <strong>Computer Science &amp; Applications</strong></div>
+                    <div>🎓 Program: <strong id="candidate-modal-course">MCA</strong></div>
+                    <div>📅 Term Semester: <strong id="candidate-modal-semester">Sem III</strong></div>
+                    <div>🏆 CGPA Performance: <strong id="candidate-modal-cgpa">9.2 / 10.0 CGPA</strong></div>
+                    <div>📧 Corporate Contact: <strong id="candidate-modal-email">student@university.com</strong></div>
+                </div>
+
+                <div style="border-top:1px solid rgba(0,0,0,0.04); padding-top:12px;">
+                    <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Core Skills</h5>
+                    <div id="candidate-modal-skills" style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <!-- Skill tags -->
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid rgba(0,0,0,0.04); padding-top:12px;">
+                    <h5 style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Project Portfolio</h5>
+                    <div id="candidate-modal-projects" style="font-size:11.5px; color:var(--text-secondary);">
+                        <!-- Projects list -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Pane: Professional PDF Viewer Mockup (Col-7) -->
+            <div class="col-7">
+                <div class="pdf-viewer-mockup">
+                    <div class="pdf-toolbar">
+                        <span>📄 Candidate_Resume.pdf</span>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span>Page 1 / 1</span>
+                            <span style="color:rgba(255,255,255,0.3);">|</span>
+                            <span>Scale 100%</span>
+                            <span style="color:rgba(255,255,255,0.3);">|</span>
+                            <button class="pdf-toolbar-btn" id="pdf-download-action-btn" onclick="downloadCandidateResumePDF()">📥 Save PDF</button>
+                        </div>
+                    </div>
+                    <div class="pdf-page-canvas">
+                        <div class="pdf-page-sheet" id="pdf-mockup-paper-sheet">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Define global company parameters
+    const companyId = {{ company.id }};
+    const studentId = companyId; // cache key compatibility
+
+    // Corporate vacancy and applicants data
+    const applicantsData = {{ applicants | tojson }};
+    const vacanciesData = {{ vacancies | tojson }};
+
+    // Augmented student data details
+    const rawStudents = {{ students | tojson }};
+    
+    const augmentedStudents = rawStudents.map(student => {
+        const id = student.id;
+        const name = student.name;
+        const course = student.course || 'MCA';
+        const cgpa = student.cgpa;
+        const gradYear = (id % 2) + 2026;
+        const semester = student.semester;
+        
+        let skills = student.skills.split(', ');
+        
+        // Check if student applied to any vacancy of this company
+        const appRecord = applicantsData.find(a => a.student_id === id);
+        const applied = !!appRecord;
+        const status = appRecord ? appRecord.status : 'Applied';
+
+        const interviewRound = (id % 2 === 0) ? 'Technical Assessment' : 'HR Fit Round';
+        const interviewDate = `2026-07-${15 + (id % 10)} 10:30 AM`;
+
+        return {
+            id: id,
+            name: name,
+            email: student.email,
+            course: course,
+            semester: semester,
+            enrollment_no: student.enrollment_no,
+            cgpa: cgpa,
+            gradYear: gradYear,
+            skills: skills,
+            applied: applied,
+            status: status,
+            interviewRound: interviewRound,
+            interviewDate: interviewDate,
+            phone: student.phone || `+91 98765 4${id % 10}2${id % 10}`,
+            projects: [
+                { title: 'Automated Placement ERP Platform', desc: 'Secure cloud dashboards for campus hiring drives' },
+                { title: 'Predictive GPA Analytics Engine', desc: 'Classification pipeline for college scoring pools' }
+            ]
+        };
+    });
+
+    // Sourcing Candidate Directory Sorter & Filter Engine
+    function renderSourcingDirectory(list = augmentedStudents) {
+        const tbody = document.getElementById('sourcing-tbody');
+        tbody.innerHTML = '';
+        document.getElementById('sourcing-results-count').textContent = `Sourced Candidates Directory (${list.length} Found)`;
+        
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-muted);">No candidates matching the criteria.</td></tr>';
+            return;
+        }
+        
+        list.forEach((s, idx) => {
+            const hasResume = localStorage.getItem(`student_resume_${s.id}`) ? 'Yes' : 'No';
+            const resumeBadge = hasResume === 'Yes' 
+                ? '<span class="stage-badge stage-selected" style="cursor:pointer;" onclick="viewCandidateResume(' + s.id + ')">📄 Sourced</span>' 
+                : '<span class="stage-badge stage-rejected">Missing</span>';
+                
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding-left:24px; text-align:center; font-weight:700; color:var(--text-muted);">${idx + 1}</td>
+                <td style="font-weight:700; color:var(--text-primary);">${s.name}</td>
+                <td>${s.enrollment_no}</td>
+                <td>${s.course}</td>
+                <td style="text-align:center;">Sem ${s.semester}</td>
+                <td style="font-weight:700; color:var(--accent-primary);">${s.cgpa.toFixed(2)}</td>
+                <td>${resumeBadge}</td>
+                <td><span class="stage-badge stage-${s.status.toLowerCase()}">${s.status}</span></td>
+                <td style="text-align:right; padding-right:12px;">
+                    <button class="btn-modern btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="viewCandidateResume(${s.id})">🔍 Sourcing Sheet</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function triggerSourcingSearch() {
+        const nameVal = document.getElementById('filter-name').value.toLowerCase().trim();
+        const courseVal = document.getElementById('filter-course').value;
+        const semVal = document.getElementById('filter-semester').value;
+        const gpaVal = parseFloat(document.getElementById('filter-gpa').value || '0');
+        const skillVal = document.getElementById('filter-skills').value;
+        const resumeVal = document.getElementById('filter-resume').value;
+        const statusVal = document.getElementById('filter-status').value;
+        
+        const filtered = augmentedStudents.filter(s => {
+            if (nameVal && !s.name.toLowerCase().includes(nameVal) && !s.enrollment_no.toLowerCase().includes(nameVal)) {
+                return false;
+            }
+            if (courseVal && s.course !== courseVal) {
+                return false;
+            }
+            if (semVal && s.semester.toString() !== semVal) {
+                return false;
+            }
+            if (gpaVal && s.cgpa < gpaVal) {
+                return false;
+            }
+            if (skillVal && !s.skills.includes(skillVal)) {
+                return false;
+            }
+            if (resumeVal) {
+                const hasResume = localStorage.getItem(`student_resume_${s.id}`) ? 'yes' : 'no';
+                if (hasResume !== resumeVal) return false;
+            }
+            if (statusVal && s.status !== statusVal) {
+                return false;
+            }
+            return true;
+        });
+        
+        renderSourcingDirectory(filtered);
+    }
+
+    function resetSourcingFilters() {
+        document.getElementById('filter-name').value = '';
+        document.getElementById('filter-course').value = '';
+        document.getElementById('filter-semester').value = '';
+        document.getElementById('filter-gpa').value = '0';
+        document.getElementById('filter-skills').value = '';
+        document.getElementById('filter-resume').value = '';
+        document.getElementById('filter-status').value = '';
+        
+        renderSourcingDirectory(augmentedStudents);
+    }
+
+    // Switch section contents
+    function switchSection(section, btn) {
+        document.querySelectorAll('.section-content-pane').forEach(el => el.style.display = 'none');
+        document.getElementById('section-' + section).style.display = 'block';
+
+        document.querySelectorAll('.portal-nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Update titles
+        const titles = {
+            'dashboard': 'Recruitment Sourcing Overview',
+            'search': 'Interactive Talent Directories',
+            'vacancies': 'Job Vacancies Control Board',
+            'applications': 'Job Sourcing Pipeline Stages',
+            'analytics': 'Analytical Recruiting Funnels',
+            'profile': 'Recruiter Company Settings'
+        };
+        document.getElementById('section-title').textContent = titles[section];
+        
+        if (section === 'vacancies') {
+            renderCompanyVacancies();
+        } else if (section === 'analytics') {
+            initRecruitmentAnalyticsCharts();
+        } else if (section === 'search') {
+            renderSourcingDirectory();
+        }
+    }
+
+    // Statistics counts calculations
+    function calculateRecruitmentStats() {
+        document.getElementById('stat-total').textContent = rawStudents.length;
+        document.getElementById('stat-eligible').textContent = rawStudents.filter(s => s.cgpa >= 8.0).length;
+        document.getElementById('stat-applications').textContent = applicantsData.length;
+        document.getElementById('stat-shortlisted').textContent = applicantsData.filter(a => a.status === 'Shortlisted').length;
+        document.getElementById('stat-interviews').textContent = applicantsData.filter(a => a.status === 'Interviewing').length;
+        document.getElementById('stat-offers').textContent = applicantsData.filter(a => a.status === 'Offered').length;
+        document.getElementById('stat-selected').textContent = applicantsData.filter(a => a.status === 'Selected').length;
+        
+        const sum = rawStudents.reduce((acc, s) => acc + s.cgpa, 0);
+        document.getElementById('stat-avg-gpa').textContent = (rawStudents.length > 0 ? (sum / rawStudents.length) : 0.0).toFixed(2);
+    }
+
+    // Render Quick Pipelines table
+    function renderQuickPipelines() {
+        const container = document.getElementById('quick-pipeline-tbody');
+        container.innerHTML = '';
+
+        const activeList = applicantsData.slice(0, 5);
+
+        if (activeList.length === 0) {
+            container.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">No student applications submitted yet.</td></tr>';
+            return;
+        }
+
+        activeList.forEach(app => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:700; color:var(--text-primary);">${app.name}</td>
+                <td>${app.course} | <span style="font-size:10px; color:var(--text-muted);">${app.job_title}</span></td>
+                <td><span class="stage-badge stage-${app.status.toLowerCase()}">${app.status}</span></td>
+                <td style="text-align:right;">
+                    <button class="btn-modern btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="viewCandidateResume(${app.student_id})">🔍 Sourcing Sheet</button>
+                </td>
+            `;
+            container.appendChild(tr);
+        });
+    }
+
+    // applications pipeline table
+    function renderPipelineApplications() {
+        const container = document.getElementById('pipeline-tbody');
+        container.innerHTML = '';
+
+        document.getElementById('pipeline-total-indicator').textContent = `${applicantsData.length} Total Sourced Pipelines`;
+
+        if (applicantsData.length === 0) {
+            container.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">No candidate applications submitted for your vacancies.</td></tr>';
+            return;
+        }
+
+        applicantsData.forEach((app, index) => {
+            const tr = document.createElement('tr');
+            
+            const hasResume = localStorage.getItem(`student_resume_${app.student_id}`) ? 'Sourced' : 'Missing';
+            const resumeBadge = hasResume === 'Sourced' 
+                ? '<span class="stage-badge stage-selected" style="cursor:pointer;" onclick="viewCandidateResume(' + app.student_id + ')">📄 Sourced</span>' 
+                : '<span class="stage-badge stage-rejected">Missing</span>';
+                
+            tr.innerHTML = `
+                <td style="padding-left:24px; font-weight:700; color:var(--text-muted); text-align:center;">${index + 1}</td>
+                <td style="font-weight:700; color:var(--text-primary);">${app.name}</td>
+                <td>${app.course}</td>
+                <td style="text-align:center;">Sem ${app.semester || 3}</td>
+                <td style="font-weight:700; color:var(--accent-primary);">${app.cgpa.toFixed(2)}</td>
+                <td>${resumeBadge}</td>
+                <td><span class="stage-badge stage-${app.status.toLowerCase()}">${app.status}</span></td>
+                <td style="text-align:right; padding-right:24px; display:flex; justify-content:flex-end; gap:6px; align-items:center;">
+                    <button class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="viewCandidateResume(${app.student_id})">🔍 View</button>
+                    <button class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px; background:rgba(6,182,212,0.05); color:var(--accent-secondary);" onclick="updateCandidateWorkflow(${app.id}, 'Shortlisted')">Shortlist</button>
+                    <button class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px; background:rgba(79,70,229,0.05); color:var(--accent-primary);" onclick="updateCandidateWorkflow(${app.id}, 'Interviewing')">Interview</button>
+                    <button class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px; background:rgba(245,158,11,0.05); color:#d97706;" onclick="updateCandidateWorkflow(${app.id}, 'Offered')">Offer</button>
+                    <button class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px; background:rgba(239,68,68,0.05); color:var(--error); border-color:rgba(239,68,68,0.15);" onclick="updateCandidateWorkflow(${app.id}, 'Rejected')">Reject</button>
+                </td>
+            `;
+            container.appendChild(tr);
+        });
+    }
+
+    function updateCandidateWorkflow(applicationId, newStage) {
+        const formData = new FormData();
+        formData.append('application_id', applicationId);
+        formData.append('status', newStage);
+
+        fetch('/company/applications/update_status', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const app = applicantsData.find(item => item.id === applicationId);
+                if (app) {
+                    app.status = newStage;
+                }
+                renderPipelineApplications();
+                calculateRecruitmentStats();
+                seedSimulatedLogs();
+                appendActivityLog(`Candidate status updated to pipeline stage [${newStage}]`);
+            } else {
+                alert('Failed to update stage: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to save status update.');
+        });
+    }
+
+    function appendActivityLog(msg) {
+        const container = document.getElementById('activity-log-container');
+        const log = document.createElement('div');
+        log.style.display = 'flex';
+        log.style.gap = '8px';
+        log.style.fontSize = '12px';
+        log.innerHTML = `
+            <span>⚙️</span>
+            <div>
+                <div style="color:var(--text-primary); font-weight:600;">${msg}</div>
+                <div style="color:var(--text-muted); font-size:10px;">Just now</div>
+            </div>
+        `;
+        container.insertBefore(log, container.firstChild);
+    }
+
+    function seedSimulatedLogs() {
+        const container = document.getElementById('activity-log-container');
+        container.innerHTML = '';
+        
+        if (applicantsData.length === 0) {
+            container.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">No recent activities logged.</div>';
+            return;
+        }
+        
+        const logsList = applicantsData.slice(0, 6);
+        logsList.forEach(app => {
+            let msg = '';
+            let icon = '⚙️';
+            
+            if (app.status === 'Applied') {
+                msg = `Candidate <strong>${app.name}</strong> submitted application for <strong>${app.job_title}</strong>.`;
+                icon = '📥';
+            } else if (app.status === 'Shortlisted') {
+                msg = `Candidate <strong>${app.name}</strong> has been shortlisted for <strong>${app.job_title}</strong>.`;
+                icon = '🎖️';
+            } else if (app.status === 'Interviewing') {
+                msg = `Interview scheduled for candidate <strong>${app.name}</strong> (${app.job_title}).`;
+                icon = '📅';
+            } else if (app.status === 'Offered') {
+                msg = `Offer letter extended to candidate <strong>${app.name}</strong> for <strong>${app.job_title}</strong>.`;
+                icon = '🎉';
+            } else if (app.status === 'Selected') {
+                msg = `Candidate <strong>${app.name}</strong> accepted the offer for <strong>${app.job_title}</strong>!`;
+                icon = '🏆';
+            } else if (app.status === 'Rejected') {
+                msg = `Application update: Candidate <strong>${app.name}</strong> rejected for <strong>${app.job_title}</strong>.`;
+                icon = '❌';
+            }
+            
+            const log = document.createElement('div');
+            log.style.display = 'flex';
+            log.style.gap = '8px';
+            log.style.fontSize = '12px';
+            log.innerHTML = `
+                <span>${icon}</span>
+                <div>
+                    <div style="color:var(--text-primary);">${msg}</div>
+                    <div style="color:var(--text-muted); font-size:10px;">${app.applied_date || 'Recent'}</div>
+                </div>
+            `;
+            container.appendChild(log);
+        });
+    }
+
+    // Modal Details CV Sourcing Sheet & PDF viewer mockup
+    let activePreviewStudent = null;
+
+    function viewCandidateResume(studentId) {
+        const student = augmentedStudents.find(s => s.id === studentId);
+        if (!student) return;
+
+        activePreviewStudent = student;
+
+        // Avatar letters
+        const parts = student.name.split(' ');
+        const initials = parts.map(p => p[0]).join('').substring(0,2).toUpperCase();
+        document.getElementById('candidate-modal-avatar').textContent = initials;
+
+        document.getElementById('candidate-modal-name').textContent = student.name;
+        document.getElementById('candidate-modal-enrollment').textContent = student.enrollment_no;
+        document.getElementById('candidate-modal-course').textContent = student.course;
+        document.getElementById('candidate-modal-semester').textContent = `Semester ${student.semester}`;
+        document.getElementById('candidate-modal-cgpa').textContent = `${student.cgpa.toFixed(1)} / 10.0 CGPA`;
+        document.getElementById('candidate-modal-email').textContent = student.email;
+
+        // Core skills
+        const skillsWrap = document.getElementById('candidate-modal-skills');
+        skillsWrap.innerHTML = '';
+        student.skills.forEach(sk => {
+            const span = document.createElement('span');
+            span.style.padding = '3px 8px';
+            span.style.background = 'rgba(79, 70, 229, 0.08)';
+            span.style.color = 'var(--accent-primary)';
+            span.style.borderRadius = '4px';
+            span.style.fontSize = '11px';
+            span.style.fontWeight = '700';
+            span.textContent = sk;
+            skillsWrap.appendChild(span);
+        });
+
+        // Project portfolio preview
+        const projectsWrap = document.getElementById('candidate-modal-projects');
+        projectsWrap.innerHTML = `
+            <div style="margin-bottom:8px;">
+                <strong>📚 Academic Sorter CLI System</strong>
+                <div style="color:var(--text-muted); font-size:10px; margin-top:2px;">Built sorting algorithms in Java Swing UI.</div>
+            </div>
+            <div>
+                <strong>🤖 GPA Performance Predictor Model</strong>
+                <div style="color:var(--text-muted); font-size:10px; margin-top:2px;">Python Scikit-Learn regression analysis algorithms.</div>
+            </div>
+        `;
+
+        // Check if student has uploaded resume in localStorage
+        const storedResume = localStorage.getItem(`student_resume_${studentId}`);
+        const sheet = document.getElementById('pdf-mockup-paper-sheet');
+        const dlBtn = document.getElementById('pdf-download-action-btn');
+
+        if (storedResume) {
+            const data = JSON.parse(storedResume);
+            dlBtn.style.display = 'inline-block';
+            
+            sheet.innerHTML = `
+                <div style="text-align:center; border-bottom:2px solid #e2e8f0; padding-bottom:18px; margin-bottom:18px;">
+                    <h1 style="font-size:20px; font-weight:800; color:#1e293b; margin:0; letter-spacing:-0.5px;">${student.name.toUpperCase()}</h1>
+                    <div style="font-size:11px; color:#475569; margin-top:6px; display:flex; justify-content:center; gap:16px;">
+                        <span>📧 ${student.email}</span>
+                        <span>📞 +91 900-410-9492</span>
+                        <span>📍 Bangalore, Karnataka</span>
+                    </div>
+                    <div style="font-size:9.5px; color:var(--success); font-weight:700; margin-top:8px;">📄 SOURCED TRANSCRIPT: ${data.filename} (Uploaded: ${data.date})</div>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 2fr 3fr; gap:20px;">
+                    <div>
+                        <h4 style="font-size:11px; text-transform:uppercase; color:#94a3b8; letter-spacing:1px; margin-bottom:6px;">Education</h4>
+                        <div style="font-size:11px; color:#334155;">
+                            <strong>Academic Management Portal</strong><br>
+                            ${student.course} - MCA Term III<br>
+                            Aggregate GPA: ${student.cgpa.toFixed(2)} CGPA<br>
+                            Enrollment: ${student.enrollment_no}
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-size:11px; text-transform:uppercase; color:#4f46e5; letter-spacing:1px; margin-bottom:6px;">Core Tech Profile</h4>
+                        <div style="font-size:11px; color:#334155;">
+                            Skills: ${student.skills.join(', ')}<br>
+                            Completed Projects: ${student.projectsCount}<br>
+                            Certifications: Oracle SE Java Developer, AWS Solutions Associate
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            dlBtn.style.display = 'none';
+            sheet.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; padding-top:120px;">
+                    <span style="font-size:42px; margin-bottom:12px;">⚠️</span>
+                    <strong style="font-size:14px; color:#475569;">No Sourced Resume Found</strong>
+                    <p style="font-size:12px; color:#94a3b8; max-width:300px; margin-top:6px;">This student has not uploaded a resume to the placement database yet.</p>
+                </div>
+            `;
+        }
+
+        document.getElementById('recruiter-resume-preview-modal').style.display = 'flex';
+    }
+
+    function closeRecruiterResumePreview() {
+        document.getElementById('recruiter-resume-preview-modal').style.display = 'none';
+        activePreviewStudent = null;
+    }
+
+    function downloadCandidateResumePDF() {
+        if (activePreviewStudent) {
+            alert(`Sourcing PDF compiled successfully!\nFile downloaded as: Resume_${activePreviewStudent.name.replace(/\s+/g, '_')}.pdf`);
+        }
+    }
+
+    // Analytical charts
+    let chart1 = null, chart2 = null, chart3 = null, chart4 = null;
+
+    function initRecruitmentAnalyticsCharts() {
+        // Destroy existing
+        if (chart1) chart1.destroy();
+        if (chart2) chart2.destroy();
+        if (chart3) chart3.destroy();
+        if (chart4) chart4.destroy();
+
+        // Funnel
+        const ctxFunnel = document.getElementById('chart-funnel').getContext('2d');
+        chart1 = new Chart(ctxFunnel, {
+            type: 'bar',
+            data: {
+                labels: ['Applied', 'Shortlisted', 'Interviewing', 'Offered', 'Hired'],
+                datasets: [{
+                    label: 'Sourcing Funnel',
+                    data: [
+                        applicantsData.length,
+                        applicantsData.filter(a => a.status === 'Shortlisted').length,
+                        applicantsData.filter(a => a.status === 'Interviewing').length,
+                        applicantsData.filter(a => a.status === 'Offered').length,
+                        applicantsData.filter(a => a.status === 'Selected').length
+                    ],
+                    backgroundColor: 'rgba(79, 70, 229, 0.75)',
+                    borderRadius: 6
+                }]
+            },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+        });
+
+        // Departments
+        const courseCounts = {};
+        rawStudents.forEach(s => {
+            // Count actual applicants
+            const app = applicantsData.find(a => a.student_id === s.id);
+            if (app) {
+                const c = s.course || 'Other';
+                courseCounts[c] = (courseCounts[c] || 0) + 1;
+            }
+        });
+        const deptLabels = Object.keys(courseCounts);
+        const deptValues = Object.values(courseCounts);
+
+        const ctxDept = document.getElementById('chart-departments').getContext('2d');
+        chart2 = new Chart(ctxDept, {
+            type: 'doughnut',
+            data: {
+                labels: deptLabels.length > 0 ? deptLabels : ['No Applications'],
+                datasets: [{
+                    data: deptValues.length > 0 ? deptValues : [1],
+                    backgroundColor: [
+                        'rgba(79, 70, 229, 0.75)', 
+                        'rgba(6, 182, 212, 0.75)',
+                        'rgba(34, 197, 94, 0.75)',
+                        'rgba(245, 158, 11, 0.75)',
+                        'rgba(239, 68, 68, 0.75)'
+                    ]
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // Line monthly
+        const ctxMonthly = document.getElementById('chart-monthly').getContext('2d');
+        chart3 = new Chart(ctxMonthly, {
+            type: 'line',
+            data: {
+                labels: ['May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Applications Flow',
+                    data: [12, 25, applicantsData.length],
+                    borderColor: 'var(--accent-primary)',
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // GPA Distributions
+        const ctxGpa = document.getElementById('chart-gpa-dist').getContext('2d');
+        chart4 = new Chart(ctxGpa, {
+            type: 'bar',
+            data: {
+                labels: ['6.0 - 7.0', '7.0 - 8.0', '8.0 - 9.0', '9.0 - 10.0'],
+                datasets: [{
+                    label: 'GPA Bands',
+                    data: [
+                        rawStudents.filter(s => s.cgpa >= 6.0 && s.cgpa < 7.0).length,
+                        rawStudents.filter(s => s.cgpa >= 7.0 && s.cgpa < 8.0).length,
+                        rawStudents.filter(s => s.cgpa >= 8.0 && s.cgpa < 9.0).length,
+                        rawStudents.filter(s => s.cgpa >= 9.0).length
+                    ],
+                    backgroundColor: 'rgba(34, 197, 94, 0.75)',
+                    borderRadius: 4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // Render Company Posted Vacancies
+    function renderCompanyVacancies() {
+        const container = document.getElementById('company-vacancies-tbody');
+        container.innerHTML = '';
+
+        if (vacanciesData.length === 0) {
+            container.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-muted);">No job drives posted yet. Click "Post New Vacancy" to get started.</td></tr>';
+            return;
+        }
+
+        vacanciesData.forEach(v => {
+            const tr = document.createElement('tr');
+            
+            const badgeClass = v.status === 'Open' ? 'status-open' : 'status-closed';
+            const closeBtnText = v.status === 'Open' ? '🔒 Close' : '🔓 Open';
+            
+            // Format parameters to safely pass to onclick edit modal
+            const vJson = JSON.stringify(v).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+            
+            tr.innerHTML = `
+                <td style="padding-left:24px; font-weight:700; color:var(--text-primary);">${v.job_title}</td>
+                <td><span class="badge ${v.job_type === 'Internship' ? 'badge-internship' : 'badge-fulltime'}">${v.job_type}</span></td>
+                <td>${v.location}</td>
+                <td style="font-weight:700; color:var(--success);">₹${v.package_lpa}</td>
+                <td>${v.cgpa_required}+</td>
+                <td>${v.vacancies_count}</td>
+                <td style="color:var(--error);">${v.last_date}</td>
+                <td><span class="job-status-badge ${badgeClass}">${v.status}</span></td>
+                <td style="text-align:right; padding-right:24px; display:flex; justify-content:flex-end; gap:6px; align-items:center;">
+                    <button class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="openCompanyEditModal('${vJson}')">✏️ Edit</button>
+                    
+                    <form action="/company/vacancies/close/${v.id}" method="POST" style="margin:0; display:inline;">
+                        <button type="submit" class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px;">${closeBtnText}</button>
+                    </form>
+                    
+                    <form action="/company/vacancies/delete/${v.id}" method="POST" style="margin:0; display:inline;" onsubmit="return confirm('Are you sure you want to delete this vacancy drive?')">
+                        <button type="submit" class="btn-modern btn-secondary" style="padding:4px 8px; font-size:11px; color:var(--error); border-color:rgba(239,68,68,0.25);">❌ Delete</button>
+                    </form>
+                </td>
+            `;
+            container.appendChild(tr);
+        });
+    }
+
+    // Company modal helper functions
+    function openCompanyAddModal() {
+        document.getElementById('company-vacancy-form').reset();
+        document.getElementById('company-vacancy-form').action = "/company/vacancies/add";
+        document.getElementById('company-modal-heading').textContent = "➕ Post New Vacancy";
+        document.getElementById('comp-form-submit-btn').textContent = "Save Vacancy";
+        document.getElementById('comp-status-group').style.display = "none";
+        
+        document.getElementById('comp-form-semester').value = "All";
+        document.getElementById('comp-form-description').value = "";
+        
+        document.querySelectorAll('.comp-dept-checkbox').forEach(cb => cb.checked = false);
+        
+        document.getElementById('company-vacancy-modal').style.display = "flex";
+    }
+
+    function openCompanyEditModal(vStr) {
+        // Decode HTML entities to JSON
+        const v = JSON.parse(vStr.replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
+        
+        document.getElementById('company-vacancy-form').action = `/company/vacancies/edit/${v.id}`;
+        document.getElementById('company-modal-heading').textContent = "✏️ Edit Vacancy Drive";
+        document.getElementById('comp-form-submit-btn').textContent = "Update Details";
+        document.getElementById('comp-status-group').style.display = "block";
+
+        document.getElementById('comp-form-job-title').value = v.job_title;
+        document.getElementById('comp-form-job-type').value = v.job_type;
+        document.getElementById('comp-form-logo-url').value = v.logo_url;
+        document.getElementById('comp-form-location').value = v.location;
+        document.getElementById('comp-form-package').value = v.package_lpa;
+        document.getElementById('comp-form-cgpa').value = v.cgpa_required;
+        document.getElementById('comp-form-spots').value = v.vacancies_count;
+        document.getElementById('comp-form-lastdate').value = v.last_date;
+        document.getElementById('comp-form-status').value = v.status;
+        document.getElementById('comp-form-skills').value = v.skills_required;
+        
+        document.getElementById('comp-form-semester').value = v.eligible_semester || "All";
+        document.getElementById('comp-form-description').value = v.description || "";
+
+        // Check checkboxes
+        const depts = v.eligible_departments.split(',').map(d => d.trim().toLowerCase());
+        document.querySelectorAll('.comp-dept-checkbox').forEach(cb => {
+            cb.checked = depts.includes(cb.value.toLowerCase());
+        });
+
+        document.getElementById('company-vacancy-modal').style.display = "flex";
+    }
+
+    function closeCompanyVacancyModal() {
+        document.getElementById('company-vacancy-modal').style.display = "none";
+    }
+
+    // Modal click out to close
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('company-vacancy-modal');
+        if (event.target === modal) {
+            closeCompanyVacancyModal();
+        }
+    });
+
+    // Startup initializations
+    window.addEventListener('DOMContentLoaded', () => {
+        calculateRecruitmentStats();
+        renderQuickPipelines();
+        renderSourcingDirectory();
+        renderPipelineApplications();
+        seedSimulatedLogs();
+
+        // Close modal when clicking on the backdrop
+        const candidateModal = document.getElementById('recruiter-resume-preview-modal');
+        if (candidateModal) {
+            candidateModal.addEventListener('click', (e) => {
+                if (e.target === candidateModal) {
+                    closeRecruiterResumePreview();
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'base_head.html' %}
+        <title>Student Portal — Sign In</title>
+    <style>
+        :root {
+            --accent-primary: #0284c7;       /* Sky Blue */
+            --accent-primary-hover: #0369a1;
+            --accent-secondary: #06b6d4;     /* Cyan */
+            --accent-secondary-hover: #0891b2;
+            --accent-gradient: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+            --accent-gradient-hover: linear-gradient(135deg, #0369a1 0%, #0891b2 100%);
+            --glass-border-focus: rgba(2, 132, 199, 0.4);
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body {
+            background: var(--bg-primary);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            position: relative;
+            overflow-x: hidden;
+            animation: pageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Moving Background Orbs */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(50px);
+            opacity: 0.3;
+            z-index: 1;
+            animation: moveOrb 12s infinite alternate ease-in-out;
+        }
+
+        .orb-blue {
+            width: 300px;
+            height: 300px;
+            background: var(--accent-secondary);
+            top: -50px;
+            right: -50px;
+        }
+
+        .orb-indigo {
+            width: 250px;
+            height: 250px;
+            background: var(--accent-primary);
+            bottom: -50px;
+            left: -50px;
+            animation-delay: -4s;
+        }
+
+        @keyframes moveOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, 40px) scale(1.1); }
+        }
+
+        /* Split Login Layout */
+        .login-container {
+            width: 100%;
+            max-width: 880px;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: formFloatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes formFloatIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Left Panel - Visual Animation */
+        .login-visual {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+            border-right: 1px solid rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .floating-icon-wrap {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin-bottom: 24px;
+        }
+
+        .main-icon {
+            font-size: 72px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: floatCap 4s infinite ease-in-out;
+        }
+
+        .star-decor {
+            position: absolute;
+            font-size: 20px;
+            animation: spinStar 8s infinite linear;
+        }
+        .star-1 { top: 10px; left: 10px; }
+        .star-2 { bottom: 15px; right: 15px; animation-duration: 12s; }
+
+        @keyframes floatCap {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-10px); }
+        }
+
+        @keyframes spinStar {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-visual h2 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-visual p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 280px;
+        }
+
+        /* Right Panel - Form */
+        .login-form-panel {
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+        }
+
+        .form-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .form-header p {
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            font-weight: 500;
+        }
+
+        .pass-wrapper {
+            position: relative;
+        }
+
+        .show-hide-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            user-select: none;
+            transition: var(--transition);
+        }
+        .show-hide-btn:hover {
+            color: var(--accent-primary-hover);
+        }
+
+        /* Options Row */
+        .options-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 18px 0 24px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .remember-me input {
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading Button Styling */
+        .btn-submit {
+            width: 100%;
+            height: 48px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.8s infinite linear;
+            display: none;
+        }
+
+        .btn-submit.loading .spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        .back-home:hover {
+            color: var(--accent-primary);
+            transform: translateX(-2px);
+        }
+
+        /* Full-screen Authentication Loading Overlay */
+        .auth-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 30% 20%, rgba(243, 244, 246, 0.8) 0%, rgba(229, 231, 235, 0.8) 100%);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .auth-loading-card {
+            max-width: 400px;
+            width: 90%;
+            padding: 40px;
+            text-align: center;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .premium-loader {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 24px auto;
+        }
+
+        .loader-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .loader-bg-circle {
+            fill: none;
+            stroke: rgba(0, 0, 0, 0.03);
+            stroke-width: 6;
+        }
+
+        .loader-fill-circle {
+            fill: none;
+            stroke: url(#loader-gradient);
+            stroke-width: 6;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        .loader-percent {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent-primary);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .auth-progress-bar-bg {
+            height: 6px;
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 24px;
+        }
+
+        .auth-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            width: 0%;
+            border-radius: 10px;
+        }
+
+        .auth-loading-message {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            height: 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Slide-in Error Toast Alert */
+        .error-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 10000;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.08);
+            border-radius: var(--radius-md);
+            max-width: 340px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: left;
+        }
+        .error-toast.active {
+            transform: translateX(0);
+        }
+    </style>
+    <script>
+        function togglePassword() {
+            var x = document.getElementById("password");
+            var toggleText = document.getElementById("toggleText");
+            if (x.type === "password") {
+                x.type = "text";
+                toggleText.textContent = "Hide";
+            } else {
+                x.type = "password";
+                toggleText.textContent = "Show";
+            }
+        }
+
+        function handleAuthLogin(event, form) {
+            event.preventDefault();
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(el => el.readOnly = true);
+            const buttons = form.querySelectorAll('button, input[type="submit"]');
+            buttons.forEach(el => el.disabled = true);
+            
+            const overlay = document.getElementById('auth-loading-overlay');
+            overlay.style.display = 'flex';
+            
+            const fillCircle = overlay.querySelector('.loader-fill-circle');
+            const percentText = document.getElementById('loader-percent-text');
+            const progressFill = document.getElementById('auth-progress-fill');
+            const messageText = document.getElementById('auth-loading-message');
+            
+            const messages = [
+                "Authenticating your credentials...",
+                "Verifying student details...",
+                "Loading academic workspace...",
+                "Preparing dashboard stats...",
+                "Almost ready..."
+            ];
+            
+            let duration = 2500;
+            let start = null;
+            
+            function animate(timestamp) {
+                if (!start) start = timestamp;
+                let progress = timestamp - start;
+                let percent = Math.min(Math.round((progress / duration) * 100), 100);
+                
+                percentText.textContent = percent + "%";
+                progressFill.style.width = percent + "%";
+                
+                if (fillCircle) {
+                    let offset = 283 - (283 * percent) / 100;
+                    fillCircle.style.strokeDashoffset = offset;
+                }
+                
+                let msgIndex = Math.floor((percent / 100) * messages.length);
+                if (msgIndex >= messages.length) msgIndex = messages.length - 1;
+                messageText.textContent = messages[msgIndex];
+                
+                if (progress < duration) {
+                    requestAnimationFrame(animate);
+                } else {
+                    form.submit();
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Show elegant validation toasts if backend error exists
+        window.addEventListener('DOMContentLoaded', () => {
+            const toast = document.getElementById('error-toast');
+            if (toast) {
+                setTimeout(() => {
+                    toast.classList.add('active');
+                }, 200);
+                setTimeout(() => {
+                    toast.classList.remove('active');
+                }, 5000);
+            }
+        });
+    </script>
+</head>
+<body>
+
+    <!-- Background Decoration Orbs -->
+    <div class="bg-orb orb-blue"></div>
+    <div class="bg-orb orb-indigo"></div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        
+        <!-- Left Column: Visual -->
+        <div class="login-visual">
+            <div class="floating-icon-wrap">
+                <span class="star-decor star-1">✨</span>
+                <span class="main-icon">🎓</span>
+                <span class="star-decor star-2">✨</span>
+            </div>
+            <h2>Student Workspace</h2>
+            <p>Access notice boards, timetables, grade progress report sheets, and billing statements.</p>
+        </div>
+
+        <!-- Right Column: Form -->
+        <div class="login-form-panel">
+            <div class="form-header">
+                <h1>Welcome Back</h1>
+                <p>Please enter your student credentials to log in.</p>
+            </div>
+
+            <!-- Error Toast Banner Placeholder -->
+            <form action="/student_login" method="POST" onsubmit="handleAuthLogin(event, this)">
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="email" class="input-modern" placeholder="student@university.com" required autocomplete="email">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Password</label>
+                    <div class="pass-wrapper">
+                        <input type="password" id="password" name="password" class="input-modern" placeholder="••••••••" required autocomplete="current-password">
+                        <span id="toggleText" class="show-hide-btn" onclick="togglePassword()">Show</span>
+                    </div>
+                </div>
+
+                <!-- Remember / Forgot Row -->
+                <div class="options-row">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember" checked>
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-link" onclick="alert('Password recovery triggers are configured via Registrar email handles. Please consult administrative helpdesks.')">Forgot Password?</a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-modern btn-primary btn-submit">Sign In</button>
+            </form>
+
+            <div>
+                <a href="/" class="back-home">← Back to Homepage</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Full-screen Authentication Loading Overlay -->
+    <div id="auth-loading-overlay" class="auth-loading-overlay">
+        <div class="auth-loading-card">
+            <div style="font-size: 36px; margin-bottom: 12px;">🎓</div>
+            <h3 style="font-size: 18px; font-weight: 800; color: var(--text-primary); font-family: 'Outfit', sans-serif;">SMS Portal</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Student Workspace</p>
+            
+            <div class="premium-loader">
+                <svg class="loader-svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="loader-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="var(--accent-primary)" />
+                            <stop offset="100%" stop-color="var(--accent-secondary)" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="loader-bg-circle" cx="50" cy="50" r="45"></circle>
+                    <circle class="loader-fill-circle" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div class="loader-percent" id="loader-percent-text">0%</div>
+            </div>
+            
+            <div class="auth-loading-message" id="auth-loading-message">Authenticating credentials...</div>
+            
+            <div class="auth-progress-bar-bg">
+                <div class="auth-progress-bar-fill" id="auth-progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Elegant Toast Notice if Error exists -->
+    {% if error %}
+    <div id="error-toast" class="error-toast">
+        <span style="font-size: 16px;">❌</span>
+        <div>
+            <div style="font-weight: 700; color: var(--text-primary); font-size: 13px;">Authentication Failed</div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">{{ error }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+</body>
+</html>

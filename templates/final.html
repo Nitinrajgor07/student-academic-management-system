@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Final Marks</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* TABS */
+        .tab-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 10px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: var(--accent-gradient);
+            color: var(--text-on-accent);
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .card-title-custom {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 280px;
+        }
+
+        .marks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .mark-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .sub-name {
+            width: 110px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        .bar-wrap {
+            flex: 1;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.8s ease-out;
+        }
+
+        .mark-val {
+            width: 50px;
+            text-align: right;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .grade {
+            width: 48px;
+            text-align: right;
+        }
+
+        /* Stats Cards */
+        .stat-grid-three {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box-modern {
+            padding: 16px 20px;
+            text-align: center;
+        }
+
+        .stat-box-modern label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-box-modern span {
+            font-size: 24px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 600px) {
+            .stat-grid-three { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'final_marks' %}
+{% include 'sidebar.html' %}
+
+<div class="page-header">
+    <h2>📊 Academic Marks</h2>
+</div>
+
+<!-- TABS -->
+<div class="tab-row">
+    <a href="/internal_marks" class="tab">📘 Internal Marks</a>
+    <a href="/final_marks"    class="tab active">📗 Final Marks</a>
+</div>
+
+{% if data %}
+{% set vals = [data[0][3]|int, data[0][4]|int, data[0][5]|int, data[0][6]|int, data[0][7]|int, data[0][8]|int] %}
+{% set total = vals|sum %}
+{% set avg = (total / 6)|int %}
+{% set pct = (total / 420 * 100)|int %}
+
+<!-- STATS -->
+<div class="stat-grid-three">
+    <div class="glass-card stat-box-modern">
+        <label>Total Score</label>
+        <span style="color: var(--accent-primary);">{{ total }}/420</span>
+    </div>
+    <div class="glass-card stat-box-modern">
+        <label>Percentage</label>
+        <span style="color: {% if pct>=80 %}var(--success){% elif pct>=60 %}var(--warning){% else %}var(--error){% endif %};">{{ pct }}%</span>
+    </div>
+    <div class="glass-card stat-box-modern">
+        <label>Class Grade</label>
+        <span style="color: {% if pct>=80 %}var(--success){% elif pct>=70 %}var(--accent-secondary){% elif pct>=60 %}var(--warning){% else %}var(--error){% endif %};">
+            {% if pct>=90 %}A+{% elif pct>=80 %}A{% elif pct>=70 %}B{% elif pct>=60 %}C{% else %}D{% endif %}
+        </span>
+    </div>
+</div>
+
+<!-- CHART -->
+<div class="glass-card" style="margin-bottom: 24px;">
+    <div class="card-title-custom">📊 Final Marks Performance Chart</div>
+    <div class="chart-wrap">
+        <canvas id="finalChart"></canvas>
+    </div>
+</div>
+
+<!-- BAR LIST -->
+<div class="glass-card" style="margin-bottom: 24px;">
+    <div class="card-title-custom">📋 Subject-wise Final Scores</div>
+    <div class="marks-list">
+        {% set sub_names = ['☕ Java Programming','🐍 Python Development','🤖 Machine Learning','⛓️ Blockchain Technologies','🗄️ Data Structures','🗃️ Advanced DBMS'] %}
+        {% set idx_list = [3,4,5,6,7,8] %}
+        {% for i in range(6) %}
+        {% set val = data[0][idx_list[i]] if data[0][idx_list[i]] else 0 %}
+        {% set item_pct = (val / 70 * 100)|int %}
+        {% if item_pct >= 90 %}{% set gc='badge-success' %}{% set gl='A+' %}{% set bc='var(--success)' %}
+        {% elif item_pct >= 80 %}{% set gc='badge-success' %}{% set gl='A' %}{% set bc='var(--success)' %}
+        {% elif item_pct >= 70 %}{% set gc='badge-info' %}{% set gl='B' %}{% set bc='var(--info)' %}
+        {% elif item_pct >= 60 %}{% set gc='badge-warning' %}{% set gl='C' %}{% set bc='var(--warning)' %}
+        {% else %}{% set gc='badge-danger' %}{% set gl='D' %}{% set bc='var(--error)' %}{% endif %}
+        <div class="mark-row">
+            <div class="sub-name">{{ sub_names[i] }}</div>
+            <div class="bar-wrap">
+                <div class="bar-fill" style="width: {{ item_pct }}%; background: {{ bc }};"></div>
+            </div>
+            <div class="mark-val">{{ val }}/70</div>
+            <div class="grade"><span class="badge-modern {{ gc }}">{{ gl }}</span></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+var ctx = document.getElementById('finalChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Java', 'Python', 'ML', 'Blockchain', 'DS', 'ADBMS'],
+        datasets: [{
+            label: 'Final Marks',
+            data: [{{ data[0][3] }}, {{ data[0][4] }}, {{ data[0][5] }}, {{ data[0][6] }}, {{ data[0][7] }}, {{ data[0][8] }}],
+            backgroundColor: [
+                'rgba(79, 70, 229, 0.7)',
+                'rgba(6, 182, 212, 0.7)',
+                'rgba(34, 197, 94, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(239, 68, 68, 0.7)',
+                'rgba(139, 92, 246, 0.7)'
+            ],
+            borderColor: [
+                '#4f46e5',
+                '#06b6d4',
+                '#22c55e',
+                '#f59e0b',
+                '#ef4444',
+                '#8b5cf6'
+            ],
+            borderWidth: 1.5,
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleFont: { family: 'Outfit', size: 12 },
+                bodyFont: { family: 'Inter', size: 11 },
+                padding: 10,
+                borderRadius: 6,
+                callbacks: {
+                    label: function(c) { return ' Marks: ' + c.parsed.y + '/70'; }
+                }
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: 70,
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#64748b', font: { family: 'Outfit', size: 11, weight: '600' } }
+            }
+        }
+    }
+});
+</script>
+
+{% else %}
+<div class="glass-card" style="padding: 40px; text-align: center; color: var(--text-muted); font-weight: 500;">
+    No final term marks found in database.
+</div>
+{% endif %}
+
+</div></div>
+</body>
+</html>

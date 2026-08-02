@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Student</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <style>
+        body {
+            background: var(--bg-primary);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            margin: auto;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group.span-2 {
+            grid-column: span 2;
+        }
+
+        .btn-submit {
+            height: 46px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .divider {
+            grid-column: span 2;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.05);
+            margin: 12px 0 6px 0;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.span-2, .divider { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h2>✏️ Edit Student Profile</h2>
+    </div>
+
+    <div class="glass-card">
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input class="input-modern" type="text" name="name" value="{{ s[1] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input class="input-modern" type="email" name="email" value="{{ s[2] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Enrolled Course</label>
+                    <input class="input-modern" type="text" name="course" value="{{ s[3] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Account Password</label>
+                    <input class="input-modern" type="text" name="password" value="{{ s[5] }}">
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Java Programming Marks</label>
+                    <input class="input-modern" type="number" name="java" value="{{ s[6] or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Python Development Marks</label>
+                    <input class="input-modern" type="number" name="python" value="{{ s[7] or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Machine Learning Marks</label>
+                    <input class="input-modern" type="number" name="ml" value="{{ s[8] or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Blockchain Technology Marks</label>
+                    <input class="input-modern" type="number" name="blockchain" value="{{ s[9] or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Data Structures Marks</label>
+                    <input class="input-modern" type="number" name="ds" value="{{ s[10] or '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Advanced DBMS Marks</label>
+                    <input class="input-modern" type="number" name="adbms" value="{{ s[11] or '' }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-modern btn-primary btn-submit">Update Student</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

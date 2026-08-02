@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Notice Board</title>
+    <style>
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .notice-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .notice-card {
+            padding: 20px 24px;
+            border-left: 4px solid var(--accent-primary) !important;
+            transition: var(--transition);
+        }
+
+        .notice-card:hover {
+            transform: translateX(4px) translateY(-1px);
+        }
+
+        .notice-card.cat-Urgent { border-left-color: var(--error) !important; }
+        .notice-card.cat-Exam   { border-left-color: var(--warning) !important; }
+        .notice-card.cat-Event  { border-left-color: var(--success) !important; }
+
+        .notice-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 12px;
+        }
+
+        .notice-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .notice-cat {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.04);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .cat-Urgent .notice-cat {
+            background: var(--error-bg);
+            color: var(--error);
+            border-color: var(--error-border);
+        }
+
+        .cat-Exam .notice-cat {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border-color: var(--warning-border);
+        }
+
+        .cat-Event .notice-cat {
+            background: var(--success-bg);
+            color: var(--success);
+            border-color: var(--success-border);
+        }
+
+        .notice-msg {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .notice-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .empty-notices {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'notices' %}
+{% include 'sidebar.html' %}
+
+<div class="page-header">
+    <h2>📢 University Notice Board</h2>
+</div>
+
+{% if notices %}
+    <div class="notice-list">
+        {% for n in notices %}
+        <div class="glass-card notice-card cat-{{ n[3] }}">
+            <div class="notice-top">
+                <span class="notice-title">{{ n[1] }}</span>
+                <span class="notice-cat">{{ n[3] }}</span>
+            </div>
+            <div class="notice-msg">{{ n[2] }}</div>
+            <div class="notice-date">🕒 {{ n[4] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="glass-card empty-notices">No new notices posted yet. Check back later!</div>
+{% endif %}
+
+</div></div>
+</body>
+</html>
+

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Active Placement Offers</title>
+    <style>
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .tag-Pending {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+
+        .tag-Accepted {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .tag-Rejected {
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error-border);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'vacancies' %}
+{% include 'sidebar.html' %}
+
+<div class="page-header">
+    <h2>🎉 Active Placement Offers</h2>
+</div>
+
+<div class="glass-card" style="padding: 32px; overflow: hidden; margin-bottom: 32px;">
+    <div class="card-title" style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">Your Corporate Placement Offers</div>
+    {% if offers %}
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th style="padding-left: 24px;">Company</th>
+                    <th>Designation</th>
+                    <th>Package</th>
+                    <th>Offer Date</th>
+                    <th>Status</th>
+                    <th style="text-align: right; padding-right: 24px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in offers %}
+                <tr id="offer-row-{{ o.id }}">
+                    <td style="padding-left: 24px; font-weight: 700; color: var(--text-primary);">{{ o.company_name }}</td>
+                    <td style="font-weight: 600;">{{ o.job_role }}</td>
+                    <td style="font-weight: 700; color: var(--success);">{{ o.package }}</td>
+                    <td style="color: var(--text-secondary);">{{ o.offer_date }}</td>
+                    <td><span class="badge-modern tag-{{ o.status }}" id="status-badge-{{ o.id }}">{{ o.status }}</span></td>
+                    <td style="text-align: right; padding-right: 24px;">
+                        <div class="action-buttons" style="justify-content: flex-end;">
+                            <a href="/active_offers/download/{{ o.id }}" target="_blank" class="btn-modern btn-secondary" style="padding: 6px 12px; font-size: 11.5px; text-decoration: none;">📄 Offer Letter</a>
+                            
+                            {% if o.status == 'Pending' %}
+                            <button onclick="updateOfferStatus({{ o.id }}, 'accept')" class="btn-modern btn-primary" id="accept-btn-{{ o.id }}" style="padding: 6px 12px; font-size: 11.5px;">Accept</button>
+                            <button onclick="updateOfferStatus({{ o.id }}, 'reject')" class="btn-modern btn-secondary" id="reject-btn-{{ o.id }}" style="padding: 6px 12px; font-size: 11.5px; border-color: rgba(239, 68, 68, 0.3); color: var(--error);">Reject</button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="color: var(--text-muted); text-align: center; padding: 40px; font-weight: 500;">No placement offers available at this moment. Keep applying!</div>
+    {% endif %}
+</div>
+
+<script>
+    function updateOfferStatus(offerId, action) {
+        fetch(`/active_offers/${action}/${offerId}`, {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Update status badge UI
+                const badge = document.getElementById(`status-badge-${offerId}`);
+                const finalStatus = action === 'accept' ? 'Accepted' : 'Rejected';
+                badge.textContent = finalStatus;
+                badge.className = `badge-modern tag-${finalStatus}`;
+                
+                // Hide action buttons
+                const acceptBtn = document.getElementById(`accept-btn-${offerId}`);
+                const rejectBtn = document.getElementById(`reject-btn-${offerId}`);
+                if (acceptBtn) acceptBtn.style.display = 'none';
+                if (rejectBtn) rejectBtn.style.display = 'none';
+                
+                showToast(data.message, 'success');
+            } else {
+                showToast('Action failed: ' + data.message, 'error');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('An error occurred while updating the offer status.', 'error');
+        });
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '24px';
+        toast.style.right = '24px';
+        toast.style.padding = '12px 24px';
+        toast.style.borderRadius = '8px';
+        toast.style.color = '#fff';
+        toast.style.fontWeight = '600';
+        toast.style.fontSize = '14px';
+        toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+        toast.style.zIndex = '9999';
+        toast.style.transition = 'opacity 0.3s ease';
+        toast.style.background = type === 'success' ? 'var(--success)' : 'var(--error)';
+        
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+</script>
+</body>
+</html>

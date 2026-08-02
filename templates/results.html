@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Results</title>
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--accent-primary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+        }
+
+        .grade-badge-custom {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: var(--radius-sm);
+            text-transform: uppercase;
+        }
+
+        .grade-pass {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .grade-fail {
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error-border);
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'results' %}
+{% include 'sidebar.html' %}
+
+<div class="page-header">
+    <h2>📈 Term Exam Results</h2>
+    <a href="/student_dashboard" class="back-btn">← Dashboard</a>
+</div>
+
+<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th style="width: 100px; text-align: center;">SlNo</th>
+                    <th>Course Title</th>
+                    <th style="text-align: center; width: 150px;">Credits</th>
+                    <th style="text-align: center; width: 150px;">Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td style="text-align: center; font-weight: 600; color: var(--text-muted);">{{ r.sino }}</td>
+                    <td style="font-weight: 600; color: var(--text-primary);">{{ r.title }}</td>
+                    <td style="text-align: center; font-weight: 500; color: var(--text-secondary);">{{ r.credits }}</td>
+                    <td style="text-align: center;">
+                        <span class="grade-badge-custom {{ 'grade-fail' if r.grade == 'F' else 'grade-pass' }}">
+                            {{ r.grade }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div></div>
+</body>
+</html>

@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'base_head.html' %}
+    <title>Take Student Attendance</title>
+    <style>
+        :root {
+            --glass-card-bg: rgba(255, 255, 255, 0.45);
+            --glass-card-border: rgba(255, 255, 255, 0.2);
+            --card-radius: 20px;
+        }
+
+        body {
+            background-color: #f8fafc;
+            background-image: radial-gradient(circle at 10% 20%, rgba(241, 245, 249, 0.6) 0%, rgba(226, 232, 240, 0.3) 90%);
+        }
+
+        /* Top Hero Header */
+        .attendance-hero {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.8) 0%, rgba(6, 182, 212, 0.8) 100%);
+            border-radius: var(--card-radius);
+            padding: 30px 40px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .hero-left h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .hero-left p {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Split layout */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+            margin-bottom: 120px;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace-grid { grid-template-columns: 1fr; }
+        }
+
+        .sidebar-card {
+            background: var(--glass-card-bg);
+            border: 1px solid var(--glass-card-border);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-header-inner {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 8px;
+        }
+
+        .search-btn {
+            background: var(--accent-gradient);
+            color: #ffffff;
+            font-weight: 700;
+            border: none;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .search-btn:hover {
+            background: var(--accent-gradient-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .profile-container {
+            border: 1px dashed rgba(79, 70, 229, 0.2);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.35);
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .profile-container.active {
+            border-style: solid;
+            border-color: var(--glass-card-border);
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-placeholder {
+            color: var(--text-muted);
+            font-size: 12.5px;
+            padding: 30px 10px;
+            font-weight: 500;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            margin: 0 auto 12px auto;
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #64748b;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .profile-enroll {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.05);
+            padding: 2px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .profile-details-list {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            padding-top: 12px;
+            margin-top: 8px;
+        }
+
+        .profile-detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .profile-detail-label {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .profile-detail-val {
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        /* Subject cards */
+        .main-workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .actions-summary-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-card-bg);
+            border: 1px solid var(--glass-card-border);
+            border-radius: var(--radius-md);
+            padding: 16px 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .quick-actions-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-pill-btn {
+            padding: 8px 16px;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--glass-card-border);
+            background: #ffffff;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-pill-btn.present {
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .action-pill-btn.present:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .action-pill-btn.absent {
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .action-pill-btn.absent:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .action-pill-btn.reset:hover {
+            background: #f1f5f9;
+        }
+
+        .subjects-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .subject-attendance-card {
+            background: var(--glass-card-bg);
+            border: 1px solid var(--glass-card-border);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 220px;
+        }
+
+        .subject-attendance-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(79, 70, 229, 0.25);
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .sub-card-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-options-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .status-option-label {
+            position: relative;
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--glass-card-border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .status-option-label input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .status-option-label:hover {
+            background: #ffffff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Selected checked states styling */
+        .option-present.checked {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #10b981;
+        }
+        .option-absent.checked {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+        }
+        .option-late.checked {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+        }
+
+        /* Toast Banner */
+        .toast-notification {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.95);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+        }
+
+        .toast-notification.active {
+            display: flex;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Sticky Bottom Actions */
+        .sticky-action-footer {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            left: 284px; /* Align offset with sidebar */
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--glass-card-border);
+            border-radius: 16px;
+            padding: 16px 30px;
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            transition: left 0.3s;
+        }
+
+        @media (max-width: 900px) {
+            .sticky-action-footer { left: 24px; }
+        }
+
+        .footer-summary-text {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'take_attendance' %}
+{% include 'admin_sidebar.html' %}
+
+<!-- Top Hero Header -->
+<div class="attendance-hero">
+    <div class="hero-left">
+        <h1>Record Daily Attendance</h1>
+        <p>Search for students and record subject-wise attendance logs directly into the system database.</p>
+    </div>
+    <div class="hero-right-stats">
+        <div class="hero-stat-item" style="border: none;">
+            <a href="/attendance" style="color: #ffffff; text-decoration: none; font-weight: 700; font-size: 13.5px; display: flex; align-items: center; gap: 8px;">
+                <span>← Back to Dashboard</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Form Container -->
+<form id="attendanceSubmissionForm" method="POST" action="/take_attendance">
+    <input type="hidden" name="student_id" id="formStudentId" required>
+    
+    <div class="workspace-grid">
+        <!-- Left: Search Student & Profile -->
+        <div class="sidebar-card">
+            <div class="card-header-inner">🔍 Select Student</div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="margin-bottom: 6px;">Select Student</label>
+                <select class="input-modern" id="studentSelectDropdown" onchange="loadSelectedStudent(this.value)">
+                    <option value="">Choose a student...</option>
+                    {% for s in students %}
+                    <option value="{{ s[0] }}">{{ s[1] }} ({{ s[2] }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="text-align: center; font-size: 10px; font-weight: 800; color: var(--text-muted); margin: 2px 0;">— OR QUERY API —</div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="margin-bottom: 6px;">Search Name / ID</label>
+                <input class="input-modern" type="text" id="quickSearchInput" placeholder="Type student name..." oninput="triggerSearchQuery(this.value)">
+                <div id="quickSearchResultsList" style="margin-top: 8px; max-height: 120px; overflow-y: auto; display: none; background: #ffffff; border: 1px solid var(--glass-card-border); border-radius: 8px; padding: 4px;">
+                    <!-- Result items -->
+                </div>
+            </div>
+
+            <div class="card-header-inner">👤 Selected Profile</div>
+            <div class="profile-container" id="profileCardWrapper">
+                <div class="profile-placeholder" id="profilePlaceholderText">
+                    No student selected. Use the search parameters above to select a student profile.
+                </div>
+                
+                <div class="profile-content" id="profileContentBlock" style="display: none;">
+                    <div class="profile-avatar" id="profileAvatarPhoto">
+                        <span>S</span>
+                    </div>
+                    <div class="profile-name" id="profileStudentName">Name</div>
+                    <div class="profile-enroll" id="profileStudentEnroll">Enrollment</div>
+                    
+                    <div class="profile-details-list">
+                        <div class="profile-detail-item">
+                            <span class="profile-detail-label">Dept:</span>
+                            <span class="profile-detail-val" id="profileDept">-</span>
+                        </div>
+                        <div class="profile-detail-item">
+                            <span class="profile-detail-label">Semester:</span>
+                            <span class="profile-detail-val" id="profileSemester">-</span>
+                        </div>
+                        <div class="profile-detail-item">
+                            <span class="profile-detail-label">Email:</span>
+                            <span class="profile-detail-val" id="profileEmail">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Subject selection cards -->
+        <div class="main-workspace">
+            <div class="actions-summary-bar">
+                <div class="form-group" style="margin-bottom: 0; width: 200px;">
+                    <label class="form-label" style="margin-bottom: 4px;">Select Date</label>
+                    <input class="input-modern" type="date" name="date" id="attendanceRecordDate" required style="padding: 8px 12px; font-size: 13px;" onchange="loadExistingRecordForDate()">
+                </div>
+                
+                <div class="quick-actions-btns">
+                    <button type="button" class="action-pill-btn present" onclick="setAllSubjects('Present')">✔ Mark All Present</button>
+                    <button type="button" class="action-pill-btn absent" onclick="setAllSubjects('Absent')">❌ Mark All Absent</button>
+                    <button type="button" class="action-pill-btn reset" onclick="resetFormSelections()">🔄 Reset Form</button>
+                </div>
+            </div>
+
+            <!-- Subject Grid -->
+            <div class="subjects-cards-grid">
+                <!-- Java -->
+                <div class="subject-attendance-card">
+                    <div class="sub-card-title">☕ Java Programming</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 500;">Prof. Rajesh Kumar | 09:30 AM</div>
+                    
+                    <div class="status-options-selector">
+                        <label class="status-option-label option-present" id="lbl-java-Present">
+                            <input type="radio" name="java" value="Present" onchange="updateRadioDesign('java', 'Present')"> Present
+                        </label>
+                        <label class="status-option-label option-absent" id="lbl-java-Absent">
+                            <input type="radio" name="java" value="Absent" checked onchange="updateRadioDesign('java', 'Absent')"> Absent
+                        </label>
+                        <label class="status-option-label option-late" id="lbl-java-Late">
+                            <input type="radio" name="java" value="Late" onchange="updateRadioDesign('java', 'Late')"> Late
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Python -->
+                <div class="subject-attendance-card">
+                    <div class="sub-card-title">🐍 Python Scripting</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 500;">Prof. Sneha M. | 11:00 AM</div>
+                    
+                    <div class="status-options-selector">
+                        <label class="status-option-label option-present" id="lbl-python-Present">
+                            <input type="radio" name="python" value="Present" onchange="updateRadioDesign('python', 'Present')"> Present
+                        </label>
+                        <label class="status-option-label option-absent" id="lbl-python-Absent">
+                            <input type="radio" name="python" value="Absent" checked onchange="updateRadioDesign('python', 'Absent')"> Absent
+                        </label>
+                        <label class="status-option-label option-late" id="lbl-python-Late">
+                            <input type="radio" name="python" value="Late" onchange="updateRadioDesign('python', 'Late')"> Late
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ML -->
+                <div class="subject-attendance-card">
+                    <div class="sub-card-title">🤖 Machine Learning</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 500;">Dr. Anil Shastri | 01:30 PM</div>
+                    
+                    <div class="status-options-selector">
+                        <label class="status-option-label option-present" id="lbl-ml-Present">
+                            <input type="radio" name="ml" value="Present" onchange="updateRadioDesign('ml', 'Present')"> Present
+                        </label>
+                        <label class="status-option-label option-absent" id="lbl-ml-Absent">
+                            <input type="radio" name="ml" value="Absent" checked onchange="updateRadioDesign('ml', 'Absent')"> Absent
+                        </label>
+                        <label class="status-option-label option-late" id="lbl-ml-Late">
+                            <input type="radio" name="ml" value="Late" onchange="updateRadioDesign('ml', 'Late')"> Late
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Blockchain -->
+                <div class="subject-attendance-card">
+                    <div class="sub-card-title">⛓️ Blockchain Technology</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 500;">Prof. Vikram Sen | 02:45 PM</div>
+                    
+                    <div class="status-options-selector">
+                        <label class="status-option-label option-present" id="lbl-blockchain-Present">
+                            <input type="radio" name="blockchain" value="Present" onchange="updateRadioDesign('blockchain', 'Present')"> Present
+                        </label>
+                        <label class="status-option-label option-absent" id="lbl-blockchain-Absent">
+                            <input type="radio" name="blockchain" value="Absent" checked onchange="updateRadioDesign('blockchain', 'Absent')"> Absent
+                        </label>
+                        <label class="status-option-label option-late" id="lbl-blockchain-Late">
+                            <input type="radio" name="blockchain" value="Late" onchange="updateRadioDesign('blockchain', 'Late')"> Late
+                        </label>
+                    </div>
+                </div>
+
+                <!-- DS -->
+                <div class="subject-attendance-card">
+                    <div class="sub-card-title">📊 Distributed Systems</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 500;">Dr. Preeti Sharma | 04:00 PM</div>
+                    
+                    <div class="status-options-selector">
+                        <label class="status-option-label option-present" id="lbl-ds-Present">
+                            <input type="radio" name="ds" value="Present" onchange="updateRadioDesign('ds', 'Present')"> Present
+                        </label>
+                        <label class="status-option-label option-absent" id="lbl-ds-Absent">
+                            <input type="radio" name="ds" value="Absent" checked onchange="updateRadioDesign('ds', 'Absent')"> Absent
+                        </label>
+                        <label class="status-option-label option-late" id="lbl-ds-Late">
+                            <input type="radio" name="ds" value="Late" onchange="updateRadioDesign('ds', 'Late')"> Late
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ADBMS -->
+                <div class="subject-attendance-card">
+                    <div class="sub-card-title">🗄️ Advanced Database Management</div>
+                    <div style="font-size: 11.5px; color: var(--text-secondary); font-weight: 500;">Prof. K. Gopinath | 05:15 PM</div>
+                    
+                    <div class="status-options-selector">
+                        <label class="status-option-label option-present" id="lbl-adbms-Present">
+                            <input type="radio" name="adbms" value="Present" onchange="updateRadioDesign('adbms', 'Present')"> Present
+                        </label>
+                        <label class="status-option-label option-absent" id="lbl-adbms-Absent">
+                            <input type="radio" name="adbms" value="Absent" checked onchange="updateRadioDesign('adbms', 'Absent')"> Absent
+                        </label>
+                        <label class="status-option-label option-late" id="lbl-adbms-Late">
+                            <input type="radio" name="adbms" value="Late" onchange="updateRadioDesign('adbms', 'Late')"> Late
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Bottom action bar -->
+    <div class="sticky-action-footer">
+        <div class="footer-summary-text" id="liveAttendanceSummaryText">
+            Selected: None | Status: --
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button type="button" class="btn-modern" onclick="window.location.href='/attendance'" style="height: 42px; padding: 0 20px; background: rgba(0,0,0,0.05); color: var(--text-secondary); border: none;">Cancel</button>
+            <button type="submit" class="btn-modern btn-primary" style="height: 42px; padding: 0 30px;">Save Attendance</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    let activeStudent = null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Set date to today by default
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById("attendanceRecordDate").value = todayStr;
+
+        // Parse query params to load student automatically if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlStudentId = urlParams.get('student_id');
+        const urlDate = urlParams.get('date');
+
+        if (urlDate) {
+            document.getElementById("attendanceRecordDate").value = urlDate;
+        }
+
+        if (urlStudentId) {
+            document.getElementById("studentSelectDropdown").value = urlStudentId;
+            loadSelectedStudent(urlStudentId);
+        }
+
+        // Initialize design classes on default checked radios
+        const subjects = ["java", "python", "ml", "blockchain", "ds", "adbms"];
+        subjects.forEach(sub => {
+            updateRadioDesign(sub, "Absent");
+        });
+    });
+
+    // Load Student profile and trigger pre-existing checks
+    async function loadSelectedStudent(studentId) {
+        if (!studentId) {
+            resetStudentProfileDisplay();
+            return;
+        }
+
+        document.getElementById("formStudentId").value = studentId;
+
+        try {
+            const response = await fetch(`/search_students_api?student_id=${studentId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.students && data.students.length > 0) {
+                    const s = data.students[0];
+                    activeStudent = s;
+
+                    // Display profile info
+                    document.getElementById("profilePlaceholderText").style.display = "none";
+                    document.getElementById("profileContentBlock").style.display = "block";
+                    document.getElementById("profileCardWrapper").classList.add("active");
+
+                    // Set values
+                    document.getElementById("profileStudentName").textContent = s.name;
+                    document.getElementById("profileStudentEnroll").textContent = "ID: " + s.id + " | Enrollment: " + s.enrollment_no;
+                    document.getElementById("profileDept").textContent = s.department;
+                    document.getElementById("profileSemester").textContent = "Sem " + s.semester;
+                    document.getElementById("profileEmail").textContent = s.email;
+
+                    // Photo placeholder check
+                    const avatar = document.getElementById("profileAvatarPhoto");
+                    if (s.profile_photo) {
+                        avatar.innerHTML = `<img src="/static/uploads/${s.profile_photo}" onerror="this.parentElement.innerHTML='<span>${s.name.charAt(0)}</span>'">`;
+                    } else {
+                        avatar.innerHTML = `<span>${s.name.charAt(0)}</span>`;
+                    }
+
+                    // Update live footer text
+                    updateFooterText();
+
+                    // Preload record for selected student and date
+                    loadExistingRecordForDate();
+                }
+            }
+        } catch (error) {
+            console.error("Error loading student profile", error);
+        }
+    }
+
+    // Reset profile view
+    function resetStudentProfileDisplay() {
+        activeStudent = null;
+        document.getElementById("formStudentId").value = "";
+        document.getElementById("profilePlaceholderText").style.display = "block";
+        document.getElementById("profileContentBlock").style.display = "none";
+        document.getElementById("profileCardWrapper").classList.remove("active");
+        updateFooterText();
+    }
+
+    // Fetch and pre-load logged attendance from database
+    async function loadExistingRecordForDate() {
+        const studentId = document.getElementById("formStudentId").value;
+        const date = document.getElementById("attendanceRecordDate").value;
+
+        if (!studentId || !date) return;
+
+        try {
+            const response = await fetch(`/get_student_attendance_api?student_id=${studentId}&date=${date}`);
+            if (response.ok) {
+                const data = await response.json();
+                const subjects = ["java", "python", "ml", "blockchain", "ds", "adbms"];
+
+                if (data.recorded) {
+                    // Prepopulate checked values
+                    subjects.forEach(sub => {
+                        const status = data[sub] || "Absent";
+                        const radio = document.querySelector(`input[name="${sub}"][value="${status}"]`);
+                        if (radio) {
+                            radio.checked = true;
+                            updateRadioDesign(sub, status);
+                        }
+                    });
+                    showNotificationToast(`Loaded existing attendance record for ${date}.`);
+                } else {
+                    // Set all to absent by default on blank date log
+                    subjects.forEach(sub => {
+                        const radio = document.querySelector(`input[name="${sub}"][value="Absent"]`);
+                        if (radio) {
+                            radio.checked = true;
+                            updateRadioDesign(sub, "Absent");
+                        }
+                    });
+                }
+                updateFooterText();
+            }
+        } catch (error) {
+            console.error("Error loading existing record", error);
+        }
+    }
+
+    // Dynamic searching trigger
+    async function triggerSearchQuery(query) {
+        const list = document.getElementById("quickSearchResultsList");
+        if (query.trim().length < 2) {
+            list.style.display = "none";
+            return;
+        }
+
+        try {
+            const response = await fetch(`/search_students_api?name=${encodeURIComponent(query)}`);
+            if (response.ok) {
+                const data = await response.json();
+                list.innerHTML = "";
+
+                if (data.students && data.students.length > 0) {
+                    list.style.display = "block";
+                    data.students.slice(0, 5).forEach(s => {
+                        const item = document.createElement("div");
+                        item.style.padding = "6px 10px";
+                        item.style.fontSize = "12px";
+                        item.style.fontWeight = "700";
+                        item.style.color = "var(--text-secondary)";
+                        item.style.cursor = "pointer";
+                        item.style.borderBottom = "1px solid rgba(0,0,0,0.03)";
+                        item.textContent = `${s.name} (Sem ${s.semester} - ID: ${s.id})`;
+                        item.onclick = function() {
+                            document.getElementById("studentSelectDropdown").value = s.id;
+                            document.getElementById("quickSearchInput").value = s.name;
+                            list.style.display = "none";
+                            loadSelectedStudent(s.id);
+                        };
+                        list.appendChild(item);
+                    });
+                } else {
+                    list.style.display = "none";
+                }
+            }
+        } catch (error) {
+            console.error("Error performing lookup search", error);
+        }
+    }
+
+    // Set all radios
+    function setAllSubjects(status) {
+        const subjects = ["java", "python", "ml", "blockchain", "ds", "adbms"];
+        subjects.forEach(sub => {
+            const radio = document.querySelector(`input[name="${sub}"][value="${status}"]`);
+            if (radio) {
+                radio.checked = true;
+                updateRadioDesign(sub, status);
+            }
+        });
+        updateFooterText();
+    }
+
+    // Reset Form
+    function resetFormSelections() {
+        setAllSubjects("Absent");
+    }
+
+    // Radio checked state design toggle classes
+    function updateRadioDesign(subject, status) {
+        const statuses = ["Present", "Absent", "Late"];
+        statuses.forEach(s => {
+            const label = document.getElementById(`lbl-${subject}-${s}`);
+            if (label) {
+                if (s === status) {
+                    label.classList.add("checked");
+                } else {
+                    label.classList.remove("checked");
+                }
+            }
+        });
+        updateFooterText();
+    }
+
+    // Live footer status updates
+    function updateFooterText() {
+        const summary = document.getElementById("liveAttendanceSummaryText");
+        if (!activeStudent) {
+            summary.textContent = "Selected: None | Status: Please select a student profile.";
+            return;
+        }
+
+        const subjects = ["java", "python", "ml", "blockchain", "ds", "adbms"];
+        let p = 0, a = 0, l = 0;
+        
+        subjects.forEach(sub => {
+            const radio = document.querySelector(`input[name="${sub}"]:checked`);
+            if (radio) {
+                if (radio.value === "Present") p++;
+                if (radio.value === "Absent") a++;
+                if (radio.value === "Late") l++;
+            }
+        });
+
+        summary.innerHTML = `Recording for: <strong>${activeStudent.name}</strong> | Status: <span style="color:#10b981;">${p} Present</span>, <span style="color:#ef4444;">${a} Absent</span>, <span style="color:#f59e0b;">${l} Late</span>`;
+    }
+
+    // Toast Notice helper
+    function showNotificationToast(msg) {
+        const toast = document.createElement("div");
+        toast.className = "toast-notification active";
+        toast.style.display = "flex";
+        toast.innerHTML = `
+            <span style="font-size:18px;">💾</span>
+            <div>
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 13px;">Status Log</div>
+                <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">${msg}</div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.transform = "translateY(100px)";
+            toast.style.opacity = "0";
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    }
+</script>
+</body>
+</html>

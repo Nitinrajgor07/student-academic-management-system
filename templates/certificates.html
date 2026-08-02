@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Certificates</title>
+    <style>
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .btn-submit {
+            margin-top: 16px;
+            height: 44px;
+            font-weight: 600;
+        }
+
+        .tag-Pending {
+            background: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+
+        .tag-Approved {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .tag-Rejected {
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error-border);
+        }
+
+        .prio-High {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error-border);
+        }
+        .prio-Medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid var(--warning-border);
+        }
+        .prio-Low {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'certificates' %}
+{% include 'sidebar.html' %}
+
+<div class="page-header">
+    <h2>🎖️ Certificate &amp; Administrative Requests</h2>
+</div>
+
+<div class="glass-card form-section">
+    <div class="card-title" style="font-size: 12px; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05);">New Request</div>
+    <form method="POST" action="/certificates">
+        <div class="form-group">
+            <label class="form-label">Request Type</label>
+            <select name="cert_type" class="input-modern" required>
+                <option value="Certificate Request">Certificate Request</option>
+                <option value="Marks Revision">Marks Revision</option>
+                <option value="Fee Receipt">Fee Receipt</option>
+                <option value="Profile Update">Profile Update</option>
+                <option value="Leave Application">Leave Application</option>
+                <option value="Bonafide Certificate">Bonafide Certificate</option>
+                <option value="Other Administrative Requests">Other Administrative Requests</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">Priority</label>
+            <select name="priority" class="input-modern" required>
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">Reason / Description (optional)</label>
+            <textarea name="reason" class="input-modern" style="resize: vertical; min-height: 80px;" placeholder="Describe details of your request..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-modern btn-primary btn-submit">Submit Request</button>
+    </form>
+</div>
+
+<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+    <div class="card-title" style="margin: 20px 20px 10px 20px; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Request History &amp; Status</div>
+    {% if requests %}
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th style="padding-left: 24px;">Request Type</th>
+                    <th>Requested On</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in requests %}
+                <tr>
+                    <td style="padding-left: 24px; font-weight: 600; color: var(--text-primary);">{{ r[2] }}</td>
+                    <td style="color: var(--text-secondary);">{{ r[5] }}</td>
+                    <td><span class="badge-modern prio-{{ r[7] or 'Medium' }}">{{ r[7] or 'Medium' }}</span></td>
+                    <td><span class="badge-modern tag-{{ r[4] }}">{{ r[4] }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="color: var(--text-muted); text-align: center; padding: 40px; font-weight: 500;">No requests submitted yet.</div>
+    {% endif %}
+</div>
+
+</div></div>
+</body>
+</html>

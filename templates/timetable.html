@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'base_head.html' %}
+    <title>Time Table</title>
+    <style>
+        /* ============================================================
+           WEEKLY VIEW GRID
+           ============================================================ */
+        .weekly-schedule-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .weekly-day-column {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            min-height: 420px;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        body.dark-theme .weekly-day-column {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .weekly-day-column:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.65);
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        body.dark-theme .weekly-day-column:hover {
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .weekly-day-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 6px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body.dark-theme .weekly-day-title {
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* ============================================================
+           LECTURE BLOCKS
+           ============================================================ */
+        .lecture-block {
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid #64748b;
+            background: rgba(100, 116, 139, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: var(--transition);
+        }
+
+        .lecture-block:hover {
+            transform: translateX(2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .lecture-time {
+            font-family: 'Outfit', sans-serif;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .lecture-subject {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .lecture-room {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Subject color assignments */
+        .sub-java      { border-left-color: #4f46e5; background: rgba(79,70,229,0.06); }
+        .sub-python    { border-left-color: #06b6d4; background: rgba(6,182,212,0.06); }
+        .sub-ml        { border-left-color: #f59e0b; background: rgba(245,158,11,0.06); }
+        .sub-ds        { border-left-color: #10b981; background: rgba(16,185,129,0.06); }
+        .sub-adbms     { border-left-color: #ec4899; background: rgba(236,72,153,0.06); }
+        .sub-blockchain{ border-left-color: #8b5cf6; background: rgba(139,92,246,0.06); }
+        .sub-break     { border-left-color: #94a3b8; background: rgba(148,163,184,0.06); opacity: 0.85; }
+
+        /* ============================================================
+           RESPONSIVE BREAKPOINTS
+           ============================================================ */
+        @media (max-width: 1100px) {
+            .weekly-schedule-board { grid-template-columns: 1fr; gap: 20px; }
+            .weekly-day-column     { min-height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Dynamic sidebar: admin or student -->
+{% if session.get('admin_logged_in') %}
+    {% set active_page = 'timetable' %}
+    {% include 'admin_sidebar.html' %}
+{% else %}
+    {% set active_page = 'timetable' %}
+    {% include 'sidebar.html' %}
+{% endif %}
+
+<div class="container-glass" style="padding: 20px 0; width: 100%;">
+
+    <!-- ================================================================
+         PAGE HEADER
+         ================================================================ -->
+    <div class="page-header" style="margin-bottom: 28px;">
+        <h2>📅 Class Timetable Schedule</h2>
+    </div>
+
+    <!-- ================================================================
+         SECTION 1 — FULL WEEKLY GRID BOARD
+         ================================================================ -->
+    <div class="weekly-schedule-board">
+
+        <!-- Monday -->
+        <div class="weekly-day-column">
+            <div class="weekly-day-title">Mon</div>
+            <div class="lecture-block sub-java">
+                <span class="lecture-time">🕐 11:45 - 12:30</span>
+                <span class="lecture-subject">Java Programming</span>
+                <span class="lecture-room">Room 302-A</span>
+            </div>
+            <div class="lecture-block sub-python">
+                <span class="lecture-time">🕐 12:35 - 01:20</span>
+                <span class="lecture-subject">Python Dev</span>
+                <span class="lecture-room">Lab 4</span>
+            </div>
+            <div class="lecture-block sub-break">
+                <span class="lecture-time">🕐 01:25 PM – 02:10 PM</span>
+                <span class="lecture-subject">🍽 Lunch Break</span>
+                <span class="lecture-room">📍 Campus Cafeteria</span>
+            </div>
+            <div class="lecture-block sub-ml">
+                <span class="lecture-time">🕐 02:15 - 03:00</span>
+                <span class="lecture-subject">Machine Learning</span>
+                <span class="lecture-room">Auditorium</span>
+            </div>
+        </div>
+
+        <!-- Tuesday -->
+        <div class="weekly-day-column">
+            <div class="weekly-day-title">Tue</div>
+            <div class="lecture-block sub-ml">
+                <span class="lecture-time">🕐 11:45 - 12:30</span>
+                <span class="lecture-subject">Machine Learning</span>
+                <span class="lecture-room">Auditorium</span>
+            </div>
+            <div class="lecture-block sub-python">
+                <span class="lecture-time">🕐 12:35 - 01:20</span>
+                <span class="lecture-subject">Python Dev</span>
+                <span class="lecture-room">Lab 4</span>
+            </div>
+            <div class="lecture-block sub-break">
+                <span class="lecture-time">🕐 01:25 PM – 02:10 PM</span>
+                <span class="lecture-subject">🍽 Lunch Break</span>
+                <span class="lecture-room">📍 Campus Cafeteria</span>
+            </div>
+            <div class="lecture-block sub-java">
+                <span class="lecture-time">🕐 02:15 - 03:00</span>
+                <span class="lecture-subject">Java Programming</span>
+                <span class="lecture-room">Room 302-A</span>
+            </div>
+        </div>
+
+        <!-- Wednesday -->
+        <div class="weekly-day-column">
+            <div class="weekly-day-title">Wed</div>
+            <div class="lecture-block sub-python">
+                <span class="lecture-time">🕐 11:45 - 12:30</span>
+                <span class="lecture-subject">Python Dev</span>
+                <span class="lecture-room">Lab 4</span>
+            </div>
+            <div class="lecture-block sub-ml">
+                <span class="lecture-time">🕐 12:35 - 01:20</span>
+                <span class="lecture-subject">Machine Learning</span>
+                <span class="lecture-room">Auditorium</span>
+            </div>
+            <div class="lecture-block sub-break">
+                <span class="lecture-time">🕐 01:25 PM – 02:10 PM</span>
+                <span class="lecture-subject">🍽 Lunch Break</span>
+                <span class="lecture-room">📍 Campus Cafeteria</span>
+            </div>
+            <div class="lecture-block sub-blockchain">
+                <span class="lecture-time">🕐 02:15 - 03:00</span>
+                <span class="lecture-subject">Blockchain Tech</span>
+                <span class="lecture-room">Room 105-B</span>
+            </div>
+        </div>
+
+        <!-- Thursday -->
+        <div class="weekly-day-column">
+            <div class="weekly-day-title">Thu</div>
+            <div class="lecture-block sub-ds">
+                <span class="lecture-time">🕐 11:45 - 12:30</span>
+                <span class="lecture-subject">Data Structures</span>
+                <span class="lecture-room">Room 204</span>
+            </div>
+            <div class="lecture-block sub-java">
+                <span class="lecture-time">🕐 12:35 - 01:20</span>
+                <span class="lecture-subject">Java Programming</span>
+                <span class="lecture-room">Room 302-A</span>
+            </div>
+            <div class="lecture-block sub-break">
+                <span class="lecture-time">🕐 01:25 PM – 02:10 PM</span>
+                <span class="lecture-subject">🍽 Lunch Break</span>
+                <span class="lecture-room">📍 Campus Cafeteria</span>
+            </div>
+            <div class="lecture-block sub-python">
+                <span class="lecture-time">🕐 02:15 - 03:00</span>
+                <span class="lecture-subject">Python Dev</span>
+                <span class="lecture-room">Lab 4</span>
+            </div>
+        </div>
+
+        <!-- Friday -->
+        <div class="weekly-day-column">
+            <div class="weekly-day-title">Fri</div>
+            <div class="lecture-block sub-adbms">
+                <span class="lecture-time">🕐 11:45 - 12:30</span>
+                <span class="lecture-subject">Advanced DBMS</span>
+                <span class="lecture-room">Lab 1</span>
+            </div>
+            <div class="lecture-block sub-ds">
+                <span class="lecture-time">🕐 12:35 - 01:20</span>
+                <span class="lecture-subject">Data Structures</span>
+                <span class="lecture-room">Room 204</span>
+            </div>
+            <div class="lecture-block sub-break">
+                <span class="lecture-time">🕐 01:25 PM – 02:10 PM</span>
+                <span class="lecture-subject">🍽 Lunch Break</span>
+                <span class="lecture-room">📍 Campus Cafeteria</span>
+            </div>
+            <div class="lecture-block sub-ml">
+                <span class="lecture-time">🕐 02:15 - 03:00</span>
+                <span class="lecture-subject">Machine Learning</span>
+                <span class="lecture-room">Auditorium</span>
+            </div>
+        </div>
+
+    </div><!-- /weekly-schedule-board -->
+
+
+
+
+</div><!-- /container-glass -->
+
+
+
+
+</body>
+</html>

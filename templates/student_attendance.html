@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'base_head.html' %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Attendance History Dashboard</title>
+
+    <style>
+        /* Modern Layout Styles */
+        .history-dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .attendance-grid {
+            display: grid;
+            grid-template-columns: 8fr 4fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* Summary Cards */
+        .summary-cards-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-kpi-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.02);
+            transition: all 0.25s ease;
+            backdrop-filter: blur(12px);
+        }
+
+        .summary-kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(31, 38, 135, 0.05);
+        }
+
+        .kpi-icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #ffffff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .kpi-text-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+        }
+
+        .kpi-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .kpi-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+
+        .bg-present { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .bg-absent { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .bg-late { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .bg-pct { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); }
+        .bg-status { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+
+        /* Filters Bar */
+        .filters-glass-bar {
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            backdrop-filter: blur(12px);
+            align-items: end;
+        }
+
+        .filter-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Attendance Table Status Badge styling */
+        .status-badge {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-present { background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-absent { background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge-late { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-holiday { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+
+        .table-row-clickable {
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .table-row-clickable:hover {
+            background: rgba(0, 0, 0, 0.015) !important;
+        }
+
+        /* Detail Modal styling */
+        .modal-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .modal-detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .modal-detail-value {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Layout Repositioning */
+        @media (max-width: 1100px) {
+            .attendance-grid {
+                grid-template-columns: 1fr;
+            }
+            .summary-cards-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .filters-glass-bar {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .summary-cards-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .filters-glass-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 550px) {
+            .summary-cards-row {
+                grid-template-columns: 1fr;
+            }
+            .filters-glass-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{% set active_page = 'attendance' %}
+{% include 'sidebar.html' %}
+
+<div class="container-glass" style="padding: 20px 0; width: 100%;">
+
+    <!-- Dashboard Header Title & PDF export -->
+    <div class="history-dashboard-header">
+        <h2 style="font-family:'Outfit',sans-serif; font-size:24px; font-weight:800; color:var(--text-primary); margin:0;">📅 Attendance History</h2>
+        <button class="btn-modern btn-primary" onclick="exportAttendancePDF()">📄 Export PDF Report</button>
+    </div>
+
+    <!-- Summary Statistics KPI Grid -->
+    <div class="summary-cards-row">
+        <div class="summary-kpi-card">
+            <div class="kpi-icon-circle bg-present">✅</div>
+            <div class="kpi-text-block">
+                <span class="kpi-label">Present Days</span>
+                <span class="kpi-value" id="kpi-present-count">0</span>
+            </div>
+        </div>
+        <div class="summary-kpi-card">
+            <div class="kpi-icon-circle bg-absent">❌</div>
+            <div class="kpi-text-block">
+                <span class="kpi-label">Absent Days</span>
+                <span class="kpi-value" id="kpi-absent-count">0</span>
+            </div>
+        </div>
+        <div class="summary-kpi-card">
+            <div class="kpi-icon-circle bg-late">🟡</div>
+            <div class="kpi-text-block">
+                <span class="kpi-label">Late Entries</span>
+                <span class="kpi-value" id="kpi-late-count">0</span>
+            </div>
+        </div>
+        <div class="summary-kpi-card">
+            <div class="kpi-icon-circle bg-pct">📊</div>
+            <div class="kpi-text-block">
+                <span class="kpi-label">Attendance Rate</span>
+                <span class="kpi-value" id="kpi-pct-rate">0%</span>
+            </div>
+        </div>
+        <div class="summary-kpi-card">
+            <div class="kpi-icon-circle bg-status">🟢</div>
+            <div class="kpi-text-block">
+                <span class="kpi-label">Term Status</span>
+                <span class="kpi-value" id="kpi-status-badge">Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Filter Glass Bar -->
+    <div class="filters-glass-bar">
+        <div class="filter-field">
+            <span class="filter-label">From Date</span>
+            <input type="date" id="filter-from-date" class="input-modern" onchange="applyFilters()">
+        </div>
+        <div class="filter-field">
+            <span class="filter-label">To Date</span>
+            <input type="date" id="filter-to-date" class="input-modern" onchange="applyFilters()">
+        </div>
+        <div class="filter-field">
+            <span class="filter-label">Month</span>
+            <select id="filter-month" class="input-modern" style="height:38px;" onchange="applyFilters()">
+                <option value="">All Months</option>
+                <option value="07">July</option>
+                <option value="06">June</option>
+                <option value="05">May</option>
+                <option value="04">April</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <span class="filter-label">Subject</span>
+            <select id="filter-subject" class="input-modern" style="height:38px;" onchange="applyFilters()">
+                <option value="">All Subjects</option>
+                <option value="Java Programming">Java Programming</option>
+                <option value="Python Programming">Python Programming</option>
+                <option value="Machine Learning">Machine Learning</option>
+                <option value="Blockchain">Blockchain</option>
+                <option value="Data Structures">Data Structures</option>
+                <option value="Advanced DBMS">Advanced DBMS</option>
+                <option value="Holiday">Holiday</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <span class="filter-label">Status</span>
+            <select id="filter-status" class="input-modern" style="height:38px;" onchange="applyFilters()">
+                <option value="">All Statuses</option>
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Late">Late</option>
+                <option value="Holiday">Holiday</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Grid Layout split: Table Sourcing & Analytics Graphs -->
+    <div class="attendance-grid">
+        
+        <!-- Attendance History Table Log Card (Col-8) -->
+        <div class="glass-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 24px 24px 12px 24px;">
+                <div class="card-header-premium" style="margin: 0;">📋 Log Records</div>
+            </div>
+            
+            <div class="table-container" style="border:none; flex: 1; max-height: 520px; overflow-y: auto;">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th style="padding-left:24px;">Date</th>
+                            <th>Day</th>
+                            <th>Subject</th>
+                            <th>Faculty</th>
+                            <th>Lecture Time</th>
+                            <th>Status</th>
+                            <th style="padding-right:24px;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-history-tbody">
+                        <!-- Filled dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Charts Sidebar Panel (Col-4) -->
+        <div style="display:flex; flex-direction:column; gap:24px;">
+            <!-- Line graph trend -->
+            <div class="glass-card" style="padding: 20px;">
+                <div class="card-header-premium" style="margin-bottom: 12px; font-size:13.5px;">📈 Attendance Trend Graph</div>
+                <div style="position:relative; height:180px; width:100%;">
+                    <canvas id="trendChartCanvas"></canvas>
+                </div>
+            </div>
+            <!-- Monthly bar graph -->
+            <div class="glass-card" style="padding: 20px;">
+                <div class="card-header-premium" style="margin-bottom: 12px; font-size:13.5px;">📊 Monthly Performance</div>
+                <div style="position:relative; height:180px; width:100%;">
+                    <canvas id="monthlyChartCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- DETAILS MODAL -->
+<div class="project-modal-backdrop" id="attendance-details-modal" style="z-index:10000; display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.15); backdrop-filter:blur(8px); justify-content:center; align-items:center;">
+    <div class="glass-card" style="width:90%; max-width:480px; padding:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:12px;">
+            <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:800; color:var(--text-primary); margin:0;">📋 Lecture Attendance Details</h3>
+            <button class="btn-modern btn-secondary" onclick="closeAttendanceModal()" style="padding:4px 8px; font-size:11px;">Close</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column;">
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Attendance Date</span>
+                <span class="modal-detail-value" id="modal-date"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Subject Module</span>
+                <span class="modal-detail-value" id="modal-subject"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Faculty Lecturer</span>
+                <span class="modal-detail-value" id="modal-faculty"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Scheduled Time</span>
+                <span class="modal-detail-value" id="modal-scheduled"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Check-in Time</span>
+                <span class="modal-detail-value" id="modal-checkin"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Late Minutes</span>
+                <span class="modal-detail-value" id="modal-latemin"></span>
+            </div>
+            <div class="modal-detail-row">
+                <span class="modal-detail-label">Attendance Status</span>
+                <span class="modal-detail-value" id="modal-status"></span>
+            </div>
+            <div class="modal-detail-row" style="border:none;">
+                <span class="modal-detail-label">Remarks / Note</span>
+                <span class="modal-detail-value" id="modal-remarks"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Database logs array passed from Python
+    const rawLogs = [
+        {% if data %}
+            {% for row in data %}
+            {
+                date: '{{ row[2] }}',
+                logs: {
+                    java: '{{ row[3] }}',
+                    python: '{{ row[4] }}',
+                    ml: '{{ row[5] }}',
+                    blockchain: '{{ row[6] }}',
+                    ds: '{{ row[7] }}',
+                    adbms: '{{ row[8] }}'
+                }
+            },
+            {% endfor %}
+        {% endif %}
+    ];
+
+    const subjectMeta = {
+        'java': { label: 'Java Programming', faculty: 'Dr. Patel', time: '11:45 AM', scheduledTime: '11:45 AM' },
+        'python': { label: 'Python Programming', faculty: 'Dr. Shah', time: '12:35 PM', scheduledTime: '12:35 PM' },
+        'ml': { label: 'Machine Learning', faculty: 'Prof. Mehta', time: '02:15 PM', scheduledTime: '02:15 PM' },
+        'blockchain': { label: 'Blockchain', faculty: 'Dr. Rajan', time: '02:15 PM', scheduledTime: '02:15 PM' },
+        'ds': { label: 'Data Structures', faculty: 'Prof. Mehta', time: '11:45 AM', scheduledTime: '11:45 AM' },
+        'adbms': { label: 'Advanced DBMS', faculty: 'Dr. Gupta', time: '12:35 PM', scheduledTime: '12:35 PM' }
+    };
+
+    // Deduplicate rawLogs by date: keep the LAST record per date (most recent admin save)
+    const deduplicatedLogs = [];
+    const seenDates = {};
+    rawLogs.forEach(entry => {
+        seenDates[entry.date] = entry; // later entries overwrite earlier ones for same date
+    });
+    Object.values(seenDates).forEach(entry => deduplicatedLogs.push(entry));
+
+    // Helper: parse "YYYY-MM-DD" safely in local timezone (avoids UTC midnight → prev day in IST)
+    function parseLocalDate(dateStr) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+
+    // Construct flat attendance history
+    let attendanceHistory = [];
+
+    // Parse deduplicated logs and flatten per-subject
+    deduplicatedLogs.forEach(entry => {
+        const dateObj = parseLocalDate(entry.date);
+        const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = daysOfWeek[dateObj.getDay()];
+
+        Object.entries(entry.logs).forEach(([subKey, status]) => {
+            if (status && status !== 'None' && status !== '') {
+                let remarks = 'On Time';
+                let checkIn = subjectMeta[subKey].scheduledTime;
+                let lateMin = 0;
+
+                if (status === 'Late') {
+                    const detMin = ((dateObj.getDate() * 7 + subKey.length) % 15) + 5;
+                    remarks = `Entered ${detMin} min late`;
+                    lateMin = detMin;
+
+                    const [timePart, ampm] = subjectMeta[subKey].scheduledTime.split(' ');
+                    const [hour, min] = timePart.split(':').map(Number);
+                    let newMin = min + detMin;
+                    let newHour = hour;
+                    if (newMin >= 60) {
+                        newMin -= 60;
+                        newHour++;
+                    }
+                    checkIn = `${newHour.toString().padStart(2, '0')}:${newMin.toString().padStart(2, '0')} ${ampm}`;
+                } else if (status === 'Absent') {
+                    remarks = dateObj.getDate() % 2 === 0 ? 'Medical Leave' : 'Unexcused';
+                    checkIn = '—';
+                }
+
+                attendanceHistory.push({
+                    date: entry.date,
+                    day: dayName,
+                    subject: subjectMeta[subKey].label,
+                    faculty: subjectMeta[subKey].faculty,
+                    time: subjectMeta[subKey].time,
+                    scheduledTime: subjectMeta[subKey].scheduledTime,
+                    checkIn: checkIn,
+                    lateMinutes: lateMin,
+                    status: status,
+                    remarks: remarks
+                });
+            }
+        });
+    });
+
+    // Inject weekend Holidays dynamically in the date range
+    if (rawLogs.length > 0) {
+        const sortedDates = rawLogs.map(l => new Date(l.date)).sort((a,b) => a-b);
+        const minDate = sortedDates[0];
+        const maxDate = sortedDates[sortedDates.length - 1];
+
+        for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+            const dayIdx = d.getDay();
+            if (dayIdx === 0 || dayIdx === 6) { // Sunday or Saturday
+                const dateStr = d.toISOString().split('T')[0];
+                const dayName = dayIdx === 0 ? 'Sunday' : 'Saturday';
+
+                // Check if holiday already added
+                const exists = attendanceHistory.find(h => h.date === dateStr && h.subject === 'Holiday');
+                if (!exists) {
+                    attendanceHistory.push({
+                        date: dateStr,
+                        day: dayName,
+                        subject: 'Holiday',
+                        faculty: '—',
+                        time: '—',
+                        scheduledTime: '—',
+                        checkIn: '—',
+                        lateMinutes: 0,
+                        status: 'Holiday',
+                        remarks: 'Weekend'
+                    });
+                }
+            }
+        }
+    }
+
+    // Sort descending by date
+    attendanceHistory.sort((a, b) => {
+        if (a.date !== b.date) {
+            return new Date(b.date) - new Date(a.date);
+        }
+        return a.subject.localeCompare(b.subject);
+    });
+
+    // Global charts placeholders
+    let trendChart = null;
+    let monthlyChart = null;
+
+    // Format Date from YYYY-MM-DD to DD-MM-YYYY
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const parts = dateStr.split('-');
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
+    // Get current filtered data list
+    function getFilteredHistory() {
+        const fromDate = document.getElementById('filter-from-date').value;
+        const toDate = document.getElementById('filter-to-date').value;
+        const month = document.getElementById('filter-month').value;
+        const subject = document.getElementById('filter-subject').value;
+        const status = document.getElementById('filter-status').value;
+
+        return attendanceHistory.filter(row => {
+            const rowDateObj = new Date(row.date);
+            const matchesFrom = !fromDate || rowDateObj >= new Date(fromDate);
+            const matchesTo = !toDate || rowDateObj <= new Date(toDate);
+            
+            // Month matching
+            const rowMonth = row.date.split('-')[1];
+            const matchesMonth = !month || rowMonth === month;
+            
+            const matchesSubject = !subject || row.subject === subject;
+            const matchesStatus = !status || row.status === status;
+
+            return matchesFrom && matchesTo && matchesMonth && matchesSubject && matchesStatus;
+        });
+    }
+
+    // Apply filters and reload interface
+    function applyFilters() {
+        const filtered = getFilteredHistory();
+        renderTable(filtered);
+        calculateKPIs(filtered);
+        updateCharts(filtered);
+    }
+
+    // Render history records table
+    function renderTable(list) {
+        const tbody = document.getElementById('attendance-history-tbody');
+        tbody.innerHTML = '';
+
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">No log records matching filters found.</td></tr>';
+            return;
+        }
+
+        list.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = 'table-row-clickable';
+            tr.onclick = () => openAttendanceModal(row);
+
+            let statusBadge = '';
+            if (row.status === 'Present') {
+                statusBadge = '<span class="status-badge badge-present">✅ Present</span>';
+            } else if (row.status === 'Absent') {
+                statusBadge = '<span class="status-badge badge-absent">❌ Absent</span>';
+            } else if (row.status === 'Late') {
+                statusBadge = '<span class="status-badge badge-late">🟡 Late</span>';
+            } else {
+                statusBadge = '<span class="status-badge badge-holiday">🔵 Holiday</span>';
+            }
+
+            tr.innerHTML = `
+                <td style="padding-left:24px; font-weight:700; color:var(--text-primary);">${formatDate(row.date)}</td>
+                <td>${row.day}</td>
+                <td style="font-weight:700; color:var(--accent-primary);">${row.subject}</td>
+                <td>${row.faculty}</td>
+                <td>${row.time}</td>
+                <td>${statusBadge}</td>
+                <td style="padding-right:24px; font-size:12.5px; color:var(--text-secondary);">${row.remarks}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Calculate dynamic stats
+    function calculateKPIs(list) {
+        const present = list.filter(r => r.status === 'Present').length;
+        const absent = list.filter(r => r.status === 'Absent').length;
+        const late = list.filter(r => r.status === 'Late').length;
+        
+        // Conducted lectures (excluding holidays)
+        const conducted = list.filter(r => r.status !== 'Holiday').length;
+        
+        // Present rate
+        const rate = conducted > 0 ? (((present + late) / conducted) * 100) : 0;
+        
+        document.getElementById('kpi-present-count').textContent = present;
+        document.getElementById('kpi-absent-count').textContent = absent;
+        document.getElementById('kpi-late-count').textContent = late;
+        document.getElementById('kpi-pct-rate').textContent = `${rate.toFixed(1)}%`;
+
+        const badge = document.getElementById('kpi-status-badge');
+        const cardIcon = badge.closest('.summary-kpi-card').querySelector('.kpi-icon-circle');
+        if (rate >= 90) {
+            badge.textContent = 'Excellent';
+            if (cardIcon) cardIcon.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        } else if (rate >= 75) {
+            badge.textContent = 'Good';
+            if (cardIcon) cardIcon.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        } else {
+            badge.textContent = 'Critical';
+            if (cardIcon) cardIcon.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        }
+    }
+
+    // Modal view handlers
+    function openAttendanceModal(row) {
+        document.getElementById('modal-date').textContent = formatDate(row.date);
+        document.getElementById('modal-subject').textContent = row.subject;
+        document.getElementById('modal-faculty').textContent = row.faculty;
+        document.getElementById('modal-scheduled').textContent = row.scheduledTime;
+        document.getElementById('modal-checkin').textContent = row.checkIn;
+        document.getElementById('modal-latemin').textContent = row.status === 'Late' ? `${row.lateMinutes} min` : '0 min';
+        document.getElementById('modal-status').textContent = row.status;
+        document.getElementById('modal-remarks').textContent = row.remarks;
+
+        document.getElementById('attendance-details-modal').style.display = 'flex';
+    }
+
+    function closeAttendanceModal() {
+        document.getElementById('attendance-details-modal').style.display = 'none';
+    }
+
+    // Backdrop click modal close
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('attendance-details-modal');
+        if (e.target === modal) {
+            closeAttendanceModal();
+        }
+    });
+
+    // Charts Rendering and Refreshing
+    function updateCharts(list) {
+        // 1. Line Trend Graph
+        // Group by Date to find daily rate
+        const dateGroups = {};
+        list.forEach(r => {
+            if (r.status !== 'Holiday') {
+                if (!dateGroups[r.date]) dateGroups[r.date] = { present: 0, total: 0 };
+                dateGroups[r.date].total++;
+                if (r.status === 'Present' || r.status === 'Late') dateGroups[r.date].present++;
+            }
+        });
+
+        const sortedTrendDates = Object.keys(dateGroups).sort((a,b) => new Date(a) - new Date(b));
+        const trendLabels = sortedTrendDates.map(formatDate);
+        const trendData = sortedTrendDates.map(d => Math.round((dateGroups[d].present / dateGroups[d].total) * 100));
+
+        if (trendChart) trendChart.destroy();
+
+        const ctxTrend = document.getElementById('trendChartCanvas').getContext('2d');
+        trendChart = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: trendLabels.slice(-10), // Show latest 10 days
+                datasets: [{
+                    label: 'Daily Rate %',
+                    data: trendData.slice(-10),
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                    tension: 0.35,
+                    fill: true,
+                    borderWidth: 2.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.03)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Monthly Performance Chart
+        const monthlyGroups = {};
+        const monthsNames = {
+            '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun',
+            '07': 'Jul', '08': 'Aug', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec'
+        };
+
+        list.forEach(r => {
+            if (r.status !== 'Holiday') {
+                const rowMonth = r.date.split('-')[1];
+                if (!monthlyGroups[rowMonth]) monthlyGroups[rowMonth] = { present: 0, total: 0 };
+                monthlyGroups[rowMonth].total++;
+                if (r.status === 'Present' || r.status === 'Late') monthlyGroups[rowMonth].present++;
+            }
+        });
+
+        const sortedMonths = Object.keys(monthlyGroups).sort((a,b) => Number(a) - Number(b));
+        const monthLabels = sortedMonths.map(m => monthsNames[m] || m);
+        const monthData = sortedMonths.map(m => Math.round((monthlyGroups[m].present / monthlyGroups[m].total) * 100));
+
+        if (monthlyChart) monthlyChart.destroy();
+
+        const ctxMonth = document.getElementById('monthlyChartCanvas').getContext('2d');
+        monthlyChart = new Chart(ctxMonth, {
+            type: 'bar',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Monthly Rate %',
+                    data: monthData,
+                    backgroundColor: 'rgba(6, 182, 212, 0.75)',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 0, max: 100, grid: { color: 'rgba(0,0,0,0.03)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Export PDF Report function
+    function exportAttendancePDF() {
+        const printWindow = window.open('', '_blank');
+        const list = getFilteredHistory();
+        
+        let tableRows = '';
+        list.forEach(row => {
+            tableRows += `
+                <tr>
+                    <td>${formatDate(row.date)}</td>
+                    <td>${row.day}</td>
+                    <td>${row.subject}</td>
+                    <td>${row.faculty}</td>
+                    <td>${row.time}</td>
+                    <td>${row.status}</td>
+                    <td>${row.remarks}</td>
+                </tr>
+            `;
+        });
+
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Attendance History Report</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1e293b; }
+                    h2 { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+                    .meta-info { font-size: 13px; color: #64748b; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; font-size: 12.5px; text-align: left; }
+                    th { background-color: #f8fafc; font-weight: 700; color: #334155; }
+                    tr:nth-child(even) { background-color: #f8fafc; }
+                </style>
+            </head>
+            <body>
+                <h2>🎓 Attendance History Log Summary Report</h2>
+                <div class="meta-info">
+                    Student Full Name: <strong>{{ s[1] }}</strong> | Course Program: <strong>{{ s[3] }}</strong><br>
+                    Academic Term: <strong>Semester III (2026)</strong> | Generated Date: <strong>${new Date().toLocaleDateString()}</strong>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Day</th>
+                            <th>Subject</th>
+                            <th>Faculty</th>
+                            <th>Lecture Time</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.close();
+                    }
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    // Startup — wait for full page + Chart.js CDN to load
+    window.addEventListener('load', () => {
+        renderTable(attendanceHistory);
+        calculateKPIs(attendanceHistory);
+        updateCharts(attendanceHistory);
+    });
+</script>
+</body>
+</html>

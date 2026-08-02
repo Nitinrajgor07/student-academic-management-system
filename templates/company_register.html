@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'base_head.html' %}
+        <title>Company Registration — SMS Portal</title>
+    <style>
+        body {
+            background: var(--bg-primary);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 40px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 800px;
+            animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .form-group.span-2 {
+            grid-column: span 2;
+        }
+
+        .btn-submit {
+            height: 48px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .show-hide-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        .pass-wrapper {
+            position: relative;
+        }
+
+        .terms-row {
+            margin: 12px 0 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .terms-row input {
+            margin-top: 3px;
+        }
+
+        .footer-links {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+        }
+
+        .footer-links a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .req { color: var(--error); margin-left: 2px; }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.span-2 { grid-column: span 1; }
+        }
+    </style>
+    <script>
+        function togglePass(id, btnId) {
+            var x = document.getElementById(id);
+            var btn = document.getElementById(btnId);
+            if (x.type === "password") {
+                x.type = "text";
+                btn.textContent = "Hide";
+            } else {
+                x.type = "password";
+                btn.textContent = "Show";
+            }
+        }
+
+        function validateForm(e) {
+            var p1 = document.getElementById("password").value;
+            var p2 = document.getElementById("confirm_password").value;
+            var errDiv = document.getElementById("errDiv");
+
+            if (p1 !== p2) {
+                errDiv.style.display = "block";
+                errDiv.textContent = "⚠️ Passwords do not match!";
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return false;
+            }
+
+            var btn = document.getElementById("submitBtn");
+            btn.classList.add("loading");
+            btn.innerHTML = '<span class="spinner"></span> Creating Account...';
+            setTimeout(function() {
+                btn.disabled = true;
+            }, 50);
+            return true;
+        }
+    </script>
+</head>
+<body>
+
+<div class="register-container">
+    <div class="glass-card" style="padding: 40px;">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div style="font-size: 32px; margin-bottom: 8px;">💼</div>
+            <h1 style="font-size: 26px; font-weight: 800; color: var(--text-primary);">Register Your Company</h1>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">Gain access to corporate recruitment, internship modules, and talent analytics.</p>
+        </div>
+
+        <div id="errDiv" class="alert-modern alert-danger" style="display: none; margin-bottom: 20px;"></div>
+        
+        {% if error %}
+        <div class="alert-modern alert-danger" style="margin-bottom: 20px;">
+            <span>⚠️ {{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" onsubmit="return validateForm()">
+            <div class="form-grid">
+                
+                <!-- Company Name -->
+                <div class="form-group">
+                    <label class="form-label">Company Name <span class="req">*</span></label>
+                    <input class="input-modern" type="text" name="name" placeholder="Acme Corporation" required>
+                </div>
+
+                <!-- HR / Contact Person Name -->
+                <div class="form-group">
+                    <label class="form-label">HR / Contact Person Name <span class="req">*</span></label>
+                    <input class="input-modern" type="text" name="hr_name" placeholder="Recruitment Team" required>
+                </div>
+
+                <!-- Company Email -->
+                <div class="form-group">
+                    <label class="form-label">Corporate Email <span class="req">*</span></label>
+                    <input class="input-modern" type="email" name="email" placeholder="hr@acme.com" required>
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label class="form-label">Contact Phone <span class="req">*</span></label>
+                    <input class="input-modern" type="tel" name="phone" placeholder="+1 (555) 012-3456" required>
+                </div>
+
+                <!-- Website -->
+                <div class="form-group">
+                    <label class="form-label">Website URL</label>
+                    <input class="input-modern" type="url" name="website" placeholder="https://acme.com">
+                </div>
+
+                <!-- Industry -->
+                <div class="form-group">
+                    <label class="form-label">Industry Sector <span class="req">*</span></label>
+                    <input class="input-modern" type="text" name="industry" placeholder="Technology, Finance, Healthcare" required>
+                </div>
+
+                <!-- Company Size -->
+                <div class="form-group">
+                    <label class="form-label">Company Size <span class="req">*</span></label>
+                    <select class="input-modern" name="company_size" required>
+                        <option value="">-- Select Size --</option>
+                        <option value="1-10">1 - 10 Employees</option>
+                        <option value="11-50">11 - 50 Employees</option>
+                        <option value="51-250">51 - 250 Employees</option>
+                        <option value="251-1000">251 - 1000 Employees</option>
+                        <option value="1000+">1000+ Employees</option>
+                    </select>
+                </div>
+
+                <!-- Address -->
+                <div class="form-group span-2">
+                    <label class="form-label">Headquarters Address</label>
+                    <textarea class="input-modern" name="address" style="resize: vertical; min-height: 70px;" placeholder="Street Address, Suite, etc."></textarea>
+                </div>
+
+                <!-- City -->
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input class="input-modern" type="text" name="city" placeholder="San Francisco">
+                </div>
+
+                <!-- State -->
+                <div class="form-group">
+                    <label class="form-label">State / Province</label>
+                    <input class="input-modern" type="text" name="state" placeholder="California">
+                </div>
+
+                <!-- Country -->
+                <div class="form-group span-2">
+                    <label class="form-label">Country <span class="req">*</span></label>
+                    <input class="input-modern" type="text" name="country" placeholder="United States" required>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label">Password <span class="req">*</span></label>
+                    <div class="pass-wrapper">
+                        <input id="password" class="input-modern" type="password" name="password" minlength="6" placeholder="••••••••" required>
+                        <span id="tPass" class="show-hide-btn" onclick="togglePass('password', 'tPass')">Show</span>
+                    </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+                    <label class="form-label">Confirm Password <span class="req">*</span></label>
+                    <div class="pass-wrapper">
+                        <input id="confirm_password" class="input-modern" type="password" name="confirm_password" minlength="6" placeholder="••••••••" required>
+                        <span id="tConf" class="show-hide-btn" onclick="togglePass('confirm_password', 'tConf')">Show</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="terms-row">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">I accept the terms of service agreement and understand my registration credentials will be reviewed by platform administrators.</label>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-modern btn-primary btn-submit" style="width: 100%;">Create Recruiter Account</button>
+        </form>
+
+        <div class="footer-links">
+            Already registered? <a href="/company_login">Sign in here</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

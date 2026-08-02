@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <style>
+        body {
+            background: var(--bg-primary);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .form-group.span-3 {
+            grid-column: span 3;
+        }
+
+        .btn-submit {
+            height: 44px;
+            font-weight: 700;
+            margin-top: 14px;
+        }
+
+        .divider {
+            grid-column: span 3;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.05);
+            margin: 12px 0 6px 0;
+        }
+
+        @media (max-width: 900px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .form-group.span-3, .divider { grid-column: span 2; }
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.span-3, .divider { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="page-header">
+        <h1>🎓 SMS Administration Dashboard</h1>
+    </div>
+
+    <!-- ADD STUDENT -->
+    <div class="glass-card" style="margin-bottom: 24px;">
+        <div class="card-title" style="font-size: 12px; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05);">Register New Student Record</div>
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input class="input-modern" type="text" name="name" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input class="input-modern" type="email" name="email" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Enrolled Course</label>
+                    <input class="input-modern" type="text" name="course" placeholder="e.g. MCA, B.Tech" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input class="input-modern" type="text" name="password" placeholder="System Password" required>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Java Programming Marks</label>
+                    <input class="input-modern" type="number" name="java" placeholder="Java Score">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Python Development Marks</label>
+                    <input class="input-modern" type="number" name="python" placeholder="Python Score">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Machine Learning Marks</label>
+                    <input class="input-modern" type="number" name="ml" placeholder="ML Score">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Blockchain Technology Marks</label>
+                    <input class="input-modern" type="number" name="blockchain" placeholder="Blockchain Score">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Data Structures Marks</label>
+                    <input class="input-modern" type="number" name="ds" placeholder="DS Score">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Advanced DBMS Marks</label>
+                    <input class="input-modern" type="number" name="adbms" placeholder="ADBMS Score">
+                </div>
+            </div>
+            <button type="submit" class="btn-modern btn-primary btn-submit">Add Student Record</button>
+        </form>
+    </div>
+
+    <!-- TABLE -->
+    <div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+        <div class="card-title" style="margin: 20px 20px 10px 20px; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">📋 Registered Students List</div>
+        <div class="table-container" style="border: none; border-radius: 0;">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th style="padding-left: 24px;">SR. NO.</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Course</th>
+                        <th>Password</th>
+                        <th>Java</th>
+                        <th>Python</th>
+                        <th>ML</th>
+                        <th>Blockchain</th>
+                        <th>DS</th>
+                        <th>ADBMS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td style="padding-left: 24px; font-weight: 700; color: var(--text-muted);">{{ loop.index }}</td>
+                        <td style="font-weight: 600; color: var(--text-primary);">{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td style="font-weight: 500;">{{ row[3] }}</td>
+                        <td style="font-family: monospace;">{{ row[5] }}</td>
+                        <td>{{ row[6] if row[6] is not none else '—' }}</td>
+                        <td>{{ row[7] if row[7] is not none else '—' }}</td>
+                        <td>{{ row[8] if row[8] is not none else '—' }}</td>
+                        <td>{{ row[9] if row[9] is not none else '—' }}</td>
+                        <td>{{ row[10] if row[10] is not none else '—' }}</td>
+                        <td>{{ row[11] if row[11] is not none else '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

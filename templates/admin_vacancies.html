@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Admin - Vacancies Management</title>
+    <style>
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .job-status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .status-open {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .status-closed {
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid var(--error-border);
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: modalFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        @keyframes modalFade {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group-full {
+            grid-column: span 2;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            font-size: 12.5px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .close-btn {
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+        }
+
+        .dept-checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            background: rgba(0,0,0,0.02);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.04);
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .dept-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'admin_vacancies' %}
+{% include 'admin_sidebar.html' %}
+
+<div class="page-header">
+    <h2>💼 Recruiter Vacancy Board Control Center</h2>
+    <button class="btn-modern btn-primary" onclick="openAddModal()">➕ Add New Vacancy</button>
+</div>
+
+<!-- Vacancies Table -->
+<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+    <div class="card-title" style="margin: 20px 20px 10px 20px; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">📋 Active Placements Drives</div>
+    
+    {% if vacancies %}
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th style="padding-left: 24px;">Logo</th>
+                    <th>Company</th>
+                    <th>Job Title</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Package (LPA)</th>
+                    <th>CGPA Cutoff</th>
+                    <th>Spots</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th style="text-align: right; padding-right: 24px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vacancies %}
+                <tr>
+                    <td style="padding-left: 24px;">
+                        {% if v.logo_url %}
+                        <img src="{{ v.logo_url }}" style="height: 24px; max-width: 48px; object-fit: contain;">
+                        {% else %}
+                        <span style="display:inline-block; width:24px; height:24px; border-radius:50%; background:#e2e8f0; text-align:center; font-weight:700; font-size:11px; line-height:24px;">{{ v.company_name[0] }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 700; color: var(--text-primary);">{{ v.company_name }}</td>
+                    <td style="font-weight: 600;">{{ v.job_title }}</td>
+                    <td>{{ v.job_type }}</td>
+                    <td>{{ v.location }}</td>
+                    <td style="font-weight: 700; color: var(--success);">₹{{ v.package_lpa }}</td>
+                    <td style="font-weight: 700;">{{ v.cgpa_required }}+</td>
+                    <td>{{ v.vacancies_count }}</td>
+                    <td style="color: var(--error);">{{ v.last_date }}</td>
+                    <td>
+                        <span class="job-status-badge {% if v.status == 'Open' %}status-open{% else %}status-closed{% endif %}">{{ v.status }}</span>
+                    </td>
+                    <td style="text-align: right; padding-right: 24px; display: flex; justify-content: flex-end; gap: 8px; align-items: center; height: 50px;">
+                        <button class="btn-modern btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="openEditModal({{ v|tojson|safe }})">✏️ Edit</button>
+                        
+                        <form action="/admin/vacancies/close/{{ v.id }}" method="POST" style="margin: 0; display: inline;">
+                            <button type="submit" class="btn-modern btn-secondary" style="padding: 4px 10px; font-size: 11px;">
+                                {% if v.status == 'Open' %}🔒 Close{% else %}🔓 Open{% endif %}
+                            </button>
+                        </form>
+                        
+                        <form action="/admin/vacancies/delete/{{ v.id }}" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Are you sure you want to permanently delete this recruitment drive? This will also remove student applications.')">
+                            <button type="submit" class="btn-modern btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: rgba(239, 68, 68, 0.3); color: var(--error);">❌ Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <span style="font-size: 40px; display: block; margin-bottom: 12px;">💼</span>
+        <strong>No Recruitment Drives Active</strong>
+        <p style="font-size: 12px; margin-top: 4px;">Click the button above to post your first recruitment vacancy drive.</p>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ADD / EDIT VACANCY MODAL -->
+<div class="modal" id="vacancy-modal">
+    <div class="modal-content">
+        <form id="vacancy-form" method="POST" action="/admin/vacancies/add">
+            <div class="modal-header">
+                <h3 id="modal-heading" style="font-size: 15px; font-weight: 800; margin: 0; color: var(--text-primary);">➕ Post Corporate Vacancy Drive</h3>
+                <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    
+                    <div class="form-group">
+                        <label>Link to Company Account</label>
+                        <select id="form-company-id" name="company_id" class="form-control" onchange="toggleCustomCompanyInput()">
+                            <option value="">-- Post Custom / Custom Company --</option>
+                            {% for c in companies %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="custom-company-group">
+                        <label>Company Name</label>
+                        <input type="text" id="form-company-name" name="company_name" class="form-control" placeholder="Google India, etc." required>
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label>Company Logo Image URL (Optional)</label>
+                        <input type="text" id="form-logo-url" name="logo_url" class="form-control" placeholder="https://logo.com/file.png">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Job Designation / Role</label>
+                        <input type="text" id="form-job-title" name="job_title" class="form-control" placeholder="Software Engineer Intern" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Job Type</label>
+                        <select id="form-job-type" name="job_type" class="form-control">
+                            <option value="Internship">Internship</option>
+                            <option value="Full-Time">Full-Time</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label>Eligible Departments / Programs</label>
+                        <div class="dept-checkbox-grid">
+                            {% for dept in departments %}
+                            <label class="dept-checkbox-item">
+                                <input type="checkbox" name="eligible_departments" value="{{ dept }}" class="dept-checkbox">
+                                {{ dept }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" id="form-eligible-departments-str" name="eligible_departments_str">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="form-location" name="location" class="form-control" placeholder="Bangalore, Mumbai, Remote" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Package (LPA Description)</label>
+                        <input type="text" id="form-package" name="package_lpa" class="form-control" placeholder="₹12 LPA" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>CGPA Cutoff Required</label>
+                        <input type="number" step="0.1" min="0.0" max="10.0" id="form-cgpa" name="cgpa_required" class="form-control" placeholder="7.5" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vacancies Spots</label>
+                        <input type="number" id="form-spots" name="vacancies_count" class="form-control" placeholder="15" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Last Date to Apply</label>
+                        <input type="date" id="form-lastdate" name="last_date" class="form-control" required>
+                    </div>
+
+                    <div class="form-group" id="status-group" style="display:none;">
+                        <label>Status</label>
+                        <select id="form-status" name="status" class="form-control">
+                            <option value="Open">Open</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label>Required Skills (Comma separated)</label>
+                        <input type="text" id="form-skills" name="skills_required" class="form-control" placeholder="Java, Python, SQL, DSA" required>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modern btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-modern btn-primary" id="form-submit-btn">Save Drive</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleCustomCompanyInput() {
+        const select = document.getElementById('form-company-id');
+        const customGrp = document.getElementById('custom-company-group');
+        const customInput = document.getElementById('form-company-name');
+
+        if (select.value === "") {
+            customGrp.style.display = "flex";
+            customInput.required = true;
+        } else {
+            customGrp.style.display = "none";
+            customInput.required = false;
+        }
+    }
+
+    function openAddModal() {
+        // Reset form
+        document.getElementById('vacancy-form').reset();
+        document.getElementById('vacancy-form').action = "/admin/vacancies/add";
+        document.getElementById('modal-heading').textContent = "➕ Post Corporate Vacancy Drive";
+        document.getElementById('form-submit-btn').textContent = "Save Drive";
+        document.getElementById('status-group').style.display = "none";
+        
+        // Ensure checkboxes are cleared
+        document.querySelectorAll('.dept-checkbox').forEach(cb => cb.checked = false);
+
+        toggleCustomCompanyInput();
+
+        document.getElementById('vacancy-modal').classList.add('open');
+    }
+
+    function openEditModal(v) {
+        // Form action update
+        const form = document.getElementById('vacancy-form');
+        form.action = `/admin/vacancies/edit/${v.id}`;
+        
+        document.getElementById('modal-heading').textContent = "✏️ Edit Vacancy Drive Details";
+        document.getElementById('form-submit-btn').textContent = "Update Details";
+        document.getElementById('status-group').style.display = "flex";
+
+        // Fill form fields
+        document.getElementById('form-company-id').value = v.company_id || "";
+        document.getElementById('form-company-name').value = v.company_name;
+        document.getElementById('form-logo-url').value = v.logo_url;
+        document.getElementById('form-job-title').value = v.job_title;
+        document.getElementById('form-job-type').value = v.job_type;
+        document.getElementById('form-location').value = v.location;
+        document.getElementById('form-package').value = v.package_lpa;
+        document.getElementById('form-cgpa').value = v.cgpa_required;
+        document.getElementById('form-spots').value = v.vacancies_count;
+        document.getElementById('form-lastdate').value = v.last_date;
+        document.getElementById('form-status').value = v.status;
+        document.getElementById('form-skills').value = v.skills_required;
+
+        // Toggle company inputs
+        toggleCustomCompanyInput();
+
+        // Check department checkboxes
+        const depts = v.eligible_departments.split(',').map(d => d.trim().toLowerCase());
+        document.querySelectorAll('.dept-checkbox').forEach(cb => {
+            cb.checked = depts.includes(cb.value.toLowerCase());
+        });
+
+        document.getElementById('vacancy-modal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('vacancy-modal').classList.remove('open');
+    }
+
+    // Modal click out to close
+    window.onclick = function(event) {
+        const modal = document.getElementById('vacancy-modal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+
+</body>
+</html>

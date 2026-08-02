@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en" style="scroll-behavior: smooth;">
+<head>
+    {% include 'base_head.html' %}
+        <title>SMS — Premium Student Management SaaS</title>
+    <style>
+        /* Sticky Navbar */
+        .navbar-sticky {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-link-item {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link-item:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 160px 24px 80px;
+            background: radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 10% 80%, rgba(79, 70, 229, 0.06) 0%, transparent 50%);
+            display: flex;
+            justify-content: center;
+            min-height: 90vh;
+        }
+
+        .hero-container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #0f172a 30%, #4f46e5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* Hero Login Action Buttons */
+        .hero-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 195px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14.5px;
+            font-weight: 700;
+            text-decoration: none;
+            color: #ffffff !important;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                        box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+                        filter 0.2s ease;
+        }
+
+        .hero-action-btn:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.05);
+        }
+
+        .hero-action-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .hero-action-btn.btn-student {
+            background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+        }
+        .hero-action-btn.btn-student:hover {
+            box-shadow: 0 8px 20px rgba(6, 182, 212, 0.35);
+        }
+
+        .hero-action-btn.btn-admin {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+        }
+        .hero-action-btn.btn-admin:hover {
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35);
+        }
+
+        .hero-action-btn.btn-company {
+            background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+        }
+        .hero-action-btn.btn-company:hover {
+            box-shadow: 0 8px 20px rgba(13, 148, 136, 0.35);
+        }
+
+        /* Animated Illustration */
+        .hero-illustration {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 380px;
+        }
+
+        .animated-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.35;
+            z-index: 1;
+            animation: pulse-soft 8s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 250px;
+            height: 250px;
+            background: var(--accent-primary);
+            top: 20px;
+            left: 30px;
+        }
+
+        .orb-2 {
+            width: 200px;
+            height: 200px;
+            background: var(--accent-secondary);
+            bottom: 30px;
+            right: 40px;
+            animation-delay: -3s;
+        }
+
+        .glass-mockup {
+            z-index: 2;
+            width: 85%;
+            height: 260px;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            background: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            animation: float 6s infinite ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .mockup-header {
+            display: flex;
+            gap: 6px;
+        }
+        .mockup-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.15);
+        }
+        .mockup-bar {
+            height: 12px;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, rgba(255,255,255,0.1) 100%);
+            border-radius: var(--radius-sm);
+            margin: 16px 0 8px 0;
+            width: 70%;
+        }
+        .mockup-body {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .mockup-block {
+            flex: 1;
+            background: rgba(255,255,255,0.4);
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255,255,255,0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 12px;
+        }
+        .mockup-line {
+            height: 8px;
+            background: rgba(0,0,0,0.06);
+            border-radius: 4px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 80px 24px;
+            background: #ffffff;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 52px;
+        }
+
+        .section-header h2 {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            text-align: left;
+            padding: 32px;
+        }
+
+        .feature-icon {
+            font-size: 28px;
+            width: 54px;
+            height: 54px;
+            background: rgba(79, 70, 229, 0.08);
+            border: 1px solid rgba(79, 70, 229, 0.12);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 70px 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid rgba(0, 0, 0, 0.03);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* About Section */
+        .about-section {
+            padding: 80px 24px;
+        }
+
+        .about-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: center;
+        }
+
+        .about-image-wrap {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .about-badge-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            backdrop-filter: var(--glass-blur);
+            width: 85%;
+        }
+
+
+
+        /* Modal Dialog */
+        .modal-glass {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-card {
+            max-width: 420px;
+            width: 100%;
+            padding: 32px;
+            text-align: center;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Footer */
+        .footer-section {
+            background: var(--bg-secondary);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 60px 24px 30px;
+        }
+
+        .footer-grid {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 40px;
+        }
+
+        .footer-brand h3 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .footer-brand p {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .footer-col h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13.5px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 30px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-copy {
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        .social-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .social-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .social-icon-btn:hover {
+            background: #ffffff;
+            color: var(--accent-primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero-container { grid-template-columns: 1fr; text-align: center; }
+            .hero-actions { justify-content: center; }
+            .hero-illustration { height: 320px; }
+            .about-container { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links a:not(.btn-modern) { display: none; }
+            .nav-links { gap: 12px; }
+        }
+
+        @media (max-width: 550px) {
+            .hero-content h1 { font-size: 38px; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+        }
+        /* Style adjustments for custom hero illustration */
+        .glass-mockup-img {
+            z-index: 2;
+            width: 85%;
+            height: auto;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            animation: float 6s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Full-screen Authentication Loading Overlay */
+        .auth-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 30% 20%, rgba(243, 244, 246, 0.8) 0%, rgba(229, 231, 235, 0.8) 100%);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .auth-loading-card {
+            max-width: 400px;
+            width: 90%;
+            padding: 40px;
+            text-align: center;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .premium-loader {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 24px auto;
+        }
+
+        .loader-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .loader-bg-circle {
+            fill: none;
+            stroke: rgba(0, 0, 0, 0.03);
+            stroke-width: 6;
+        }
+
+        .loader-fill-circle {
+            fill: none;
+            stroke: url(#loader-gradient);
+            stroke-width: 6;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        .loader-percent {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent-primary);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .auth-progress-bar-bg {
+            height: 6px;
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 24px;
+        }
+
+        .auth-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            width: 0%;
+            border-radius: 10px;
+        }
+
+        .auth-loading-message {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            height: 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Slide-in Error Toast Alert */
+        .error-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 10000;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.08);
+            border-radius: var(--radius-md);
+            max-width: 340px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: left;
+        }
+        .error-toast.active {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sticky Navbar -->
+    <nav class="navbar-sticky">
+        <div class="navbar-container">
+            <a href="#" class="nav-logo">🎓 <span>SMS Portal</span></a>
+            <div class="nav-links">
+                <a href="#" class="nav-link-item">Home</a>
+                <a href="#features" class="nav-link-item">Features</a>
+                <a href="#stats" class="nav-link-item">Stats</a>
+                <a href="#about" class="nav-link-item">About</a>
+                <a href="#login" class="btn-modern btn-primary" style="padding: 8px 18px; font-size: 13px;">Login Portal</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Academic Operations, Refined &amp; Automated.</h1>
+                <p>An enterprise-grade, student management system featuring glassmorphic analytics, secure roll attendance metrics, credit scores management, and direct certificates generation.</p>
+                <div class="hero-actions" id="login">
+                    <a href="/student_login" class="hero-action-btn btn-student">🎒 Student Sign In</a>
+                    <a href="/admin_login" class="hero-action-btn btn-admin">👑 Admin Sign In</a>
+                    <a href="/company_login" class="hero-action-btn btn-company">💼 Company Login</a>
+                </div>
+            </div>
+            
+            <div class="hero-illustration">
+                <div class="animated-orb orb-1"></div>
+                <div class="animated-orb orb-2"></div>
+                <img src="{{ url_for('static', filename='images/hero-illustration.svg') }}" class="glass-mockup-img" alt="Student Management Dashboard Illustration">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="section-header">
+            <h2>Core Platform Features</h2>
+            <p>Integrated tools helping administrators manage operations and providing students with unified performance access dashboards.</p>
+        </div>
+        <div class="features-grid">
+            <div class="glass-card feature-card">
+                <div class="feature-icon">📅</div>
+                <h3 style="margin-bottom: 10px;">Daily Schedules</h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">Access daily class timetables automatically sorted by semester tracks.</p>
+            </div>
+            <div class="glass-card feature-card">
+                <div class="feature-icon" style="background:rgba(6,182,212,0.08); border-color:rgba(6,182,212,0.12); color:var(--accent-secondary);">📝</div>
+                <h3 style="margin-bottom: 10px;">Marks Tracking</h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">View broken-down internal term scores and external board grades on visual progress meters.</p>
+            </div>
+            <div class="glass-card feature-card">
+                <div class="feature-icon" style="background:rgba(34,197,94,0.08); border-color:rgba(34,197,94,0.12); color:var(--success);">💳</div>
+                <h3 style="margin-bottom: 10px;">Fees Management</h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">Audit fee balances, generate invoices, and log secure payment records.</p>
+            </div>
+            <div class="glass-card feature-card">
+                <div class="feature-icon" style="background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.12); color:var(--warning);">📢</div>
+                <h3 style="margin-bottom: 10px;">Notice Announcements</h3>
+                <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">Real-time categorical alerts for exam revisions, events, and urgent actions.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section id="stats" class="stats-section">
+        <div class="stats-grid">
+            <div>
+                <div class="stat-value">15,000+</div>
+                <div class="stat-label">Active Learners</div>
+            </div>
+            <div>
+                <div class="stat-value">98.4%</div>
+                <div class="stat-label">Attendance Accuracy</div>
+            </div>
+            <div>
+                <div class="stat-value">450+</div>
+                <div class="stat-label">Verified Courses</div>
+            </div>
+            <div>
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Secure Data Encryption</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="about-container">
+            <div class="about-content">
+                <h2 style="font-size: 32px; margin-bottom: 16px; font-weight: 800;">Designed for the Modern Campus</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6; font-size: 15px;">Our platform streamlines student information routing, freeing faculty from manual spreadsheets. From attendance recording to marks updates and certificate request auditing, all features run under a unified administrative dashboard with frosted glass visuals.</p>
+                <p style="color: var(--text-secondary); line-height: 1.6; font-size: 15px;">Empower your students with transparent grade reports, class schedules, and fee balance receipts anywhere, anytime.</p>
+            </div>
+            <div class="about-image-wrap">
+                <div class="about-badge-card">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; margin-bottom: 8px;">Featured Stat</div>
+                    <div style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Zero Maintenance Downtime</div>
+                    <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">Enjoy seamless server operations and responsive layouts configured for desktop and mobile clients alike.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>🎓 SMS Platform</h3>
+                <p>Next-generation student management workflows designed with premium glassmorphism interfaces and robust database backends.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Platform</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Overview</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#stats">Statistics</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="#" onclick="alert('Privacy Policy details coming soon.')">Privacy Policy</a></li>
+                    <li><a href="#" onclick="alert('Terms of Service details coming soon.')">Terms of Use</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <ul class="footer-links">
+                    <li><a href="mailto:support@university.com">support@university.com</a></li>
+                    <li><a href="#">+1 (555) 019-2834</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="footer-copy">&copy; 2026 SMS Platform. All rights reserved. Designed for maximum accessibility.</div>
+            <div class="social-row">
+                <a href="#" class="social-icon-btn" aria-label="Twitter">
+                    <svg style="width:16px; height:16px;" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="#" class="social-icon-btn" aria-label="Github">
+                    <svg style="width:16px; height:16px;" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.138 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                </a>
+                <a href="#" class="social-icon-btn" aria-label="LinkedIn">
+                    <svg style="width:16px; height:16px;" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

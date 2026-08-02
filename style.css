@@ -1,0 +1,19 @@
+.day-select {
+    width: 200px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 2px solid #3b82f6;
+    background: white;
+    color: black;
+}
+
+.show-btn {
+    padding: 10px 20px;
+    margin-left: 10px;
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}

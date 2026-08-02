@@ -1,0 +1,15 @@
+{# ============================================================
+     BASE HEAD PARTIAL — include at the top of every full-page template
+     Usage:  {% include 'base_head.html' %}
+     After including, add page-specific <title>, <style>, and <script> tags.
+     ============================================================ #}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Student Management Portal — University Academic & Placement System">
+
+<!-- Preconnect to Google Fonts to reduce DNS + TLS latency -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<!-- Global design system stylesheet -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">

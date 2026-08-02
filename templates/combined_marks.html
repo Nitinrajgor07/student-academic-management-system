@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Combined Marks</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--accent-primary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+        }
+
+        /* STAT BOXES */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            padding: 20px 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .stat-val {
+            font-size: 24px;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* CHART */
+        .chart-wrap {
+            position: relative;
+            height: 300px;
+        }
+
+        .sub-name {
+            font-weight: 600 !important;
+            color: var(--text-primary);
+        }
+
+        .int-col {
+            color: var(--success) !important;
+            font-weight: 600;
+        }
+
+        .fin-col {
+            color: var(--accent-secondary) !important;
+            font-weight: 600;
+        }
+
+        .tot-col {
+            color: var(--accent-primary) !important;
+            font-weight: 700;
+        }
+
+        .total-row td {
+            font-weight: 700 !important;
+            border-top: 2px solid rgba(0, 0, 0, 0.08) !important;
+            background: rgba(255, 255, 255, 0.65) !important;
+        }
+
+        /* PROGRESS BAR */
+        .bar-wrap {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease-out;
+        }
+
+        @media(max-width: 768px) {
+            .stat-row { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+{% set active_page = 'combined' %}
+{% include 'sidebar.html' %}
+
+<div class="page-header">
+    <h2>🏆 Combined Academic Performance</h2>
+    <a href="/student_dashboard" class="back-btn">← Dashboard</a>
+</div>
+
+{% set i_vals = [
+    internal[3]|int if internal and internal[3] else 0,
+    internal[4]|int if internal and internal[4] else 0,
+    internal[5]|int if internal and internal[5] else 0,
+    internal[6]|int if internal and internal[6] else 0,
+    internal[7]|int if internal and internal[7] else 0,
+    internal[8]|int if internal and internal[8] else 0
+] %}
+{% set f_vals = [
+    final[3]|int if final and final[3] else 0,
+    final[4]|int if final and final[4] else 0,
+    final[5]|int if final and final[5] else 0,
+    final[6]|int if final and final[6] else 0,
+    final[7]|int if final and final[7] else 0,
+    final[8]|int if final and final[8] else 0
+] %}
+{% set i_total = i_vals|sum %}
+{% set f_total = f_vals|sum %}
+{% set combined = i_total + f_total %}
+{% set pct = ((combined / 600) * 100)|int %}
+{% if pct >= 90 %}{% set og='A+' %}{% set gcls='badge-success' %}
+{% elif pct >= 80 %}{% set og='A' %}{% set gcls='badge-success' %}
+{% elif pct >= 70 %}{% set og='B' %}{% set gcls='badge-info' %}
+{% elif pct >= 60 %}{% set og='C' %}{% set gcls='badge-warning' %}
+{% else %}{% set og='D' %}{% set gcls='badge-danger' %}{% endif %}
+
+<!-- STAT BOXES -->
+<div class="stat-row">
+    <div class="glass-card stat-box">
+        <div class="stat-label">📘 Internal</div>
+        <div class="stat-val" style="color: var(--success);">{{ i_total }}<span style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">/180</span></div>
+    </div>
+    <div class="glass-card stat-box">
+        <div class="stat-label">📗 Final</div>
+        <div class="stat-val" style="color: var(--accent-secondary);">{{ f_total }}<span style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">/420</span></div>
+    </div>
+    <div class="glass-card stat-box">
+        <div class="stat-label">🏆 Total</div>
+        <div class="stat-val" style="color: var(--accent-primary);">{{ combined }}<span style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">/600</span></div>
+    </div>
+    <div class="glass-card stat-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 8px;">
+        <div class="stat-label">📊 Percentage</div>
+        <div class="stat-val" style="color: {% if pct>=80 %}var(--success){% elif pct>=60 %}var(--warning){% else %}var(--error){% endif %}; line-height: 1.2;">
+            {{ pct }}%
+        </div>
+        <span class="badge-modern {{ gcls }}" style="font-size: 10px; margin-top: 6px; display: inline-flex;">{{ og }}</span>
+    </div>
+</div>
+
+<!-- COMBINED CHART -->
+<div class="glass-card" style="margin-bottom: 24px;">
+    <div class="card-title">📊 Combined Marks Chart</div>
+    <div class="chart-wrap">
+        <canvas id="combinedChart"></canvas>
+    </div>
+</div>
+
+<!-- SUBJECT TABLE -->
+<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+    <div class="card-title" style="margin: 20px 20px 10px 20px; border-bottom: none; padding-bottom: 0;">📋 Subject-wise Combined Result</div>
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="table-modern" style="text-align: center;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding-left: 24px;">Subject</th>
+                    <th style="text-align: center;">📘 Internal <small style="color: var(--text-muted);">/30</small></th>
+                    <th style="text-align: center;">📗 Final <small style="color: var(--text-muted);">/70</small></th>
+                    <th style="text-align: center;">🏆 Total <small style="color: var(--text-muted);">/100</small></th>
+                    <th style="text-align: center; width: 140px;">Progress</th>
+                    <th style="text-align: center;">Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set subs = ['☕ Java Programming','🐍 Python Development','🤖 Machine Learning','⛓️ Blockchain Technologies','🗄️ Data Structures','🗃️ Advanced DBMS'] %}
+                {% for i in range(6) %}
+                {% set iv = i_vals[i] %}
+                {% set fv = f_vals[i] %}
+                {% set tot = iv + fv %}
+                {% if tot >= 90 %}{% set gc2='badge-success' %}{% set gl='A+' %}{% set bc='var(--success)' %}
+                {% elif tot >= 80 %}{% set gc2='badge-success' %}{% set gl='A' %}{% set bc='var(--success)' %}
+                {% elif tot >= 70 %}{% set gc2='badge-info' %}{% set gl='B' %}{% set bc='var(--info)' %}
+                {% elif tot >= 60 %}{% set gc2='badge-warning' %}{% set gl='C' %}{% set bc='var(--warning)' %}
+                {% else %}{% set gc2='badge-danger' %}{% set gl='D' %}{% set bc='var(--error)' %}{% endif %}
+                <tr>
+                    <td class="sub-name" style="text-align: left; padding-left: 24px;">{{ subs[i] }}</td>
+                    <td class="int-col">{{ iv }}</td>
+                    <td class="fin-col">{{ fv }}</td>
+                    <td class="tot-col">{{ tot }}/100</td>
+                    <td>
+                        <div class="bar-wrap">
+                            <div class="bar-fill" style="width: {{ tot }}%; background: {{ bc }};"></div>
+                        </div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px; font-weight: 500;">{{ tot }}%</div>
+                    </td>
+                    <td><span class="badge-modern {{ gc2 }}">{{ gl }}</span></td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td class="sub-name" style="color: var(--accent-primary); text-align: left; padding-left: 24px;">📊 Grand Total</td>
+                    <td style="color: var(--success); font-size: 15px; font-weight: 700;">{{ i_total }}/180</td>
+                    <td style="color: var(--accent-secondary); font-size: 15px; font-weight: 700;">{{ f_total }}/420</td>
+                    <td style="color: var(--accent-primary); font-size: 16px; font-weight: 700;">{{ combined }}/600</td>
+                    <td style="color: var(--accent-primary); font-size: 14px; font-weight: 700;">{{ pct }}%</td>
+                    <td><span class="badge-modern {{ gcls }}" style="font-size: 12px; padding: 4px 12px;">{{ og }}</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+new Chart(document.getElementById('combinedChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: ['Java', 'Python', 'ML', 'Blockchain', 'DS', 'ADBMS'],
+        datasets: [
+            {
+                label: 'Internal (/30)',
+                data: [{{ i_vals[0] }}, {{ i_vals[1] }}, {{ i_vals[2] }}, {{ i_vals[3] }}, {{ i_vals[4] }}, {{ i_vals[5] }}],
+                backgroundColor: 'rgba(79, 70, 229, 0.65)',
+                borderColor: '#4f46e5',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            },
+            {
+                label: 'Final (/70)',
+                data: [{{ f_vals[0] }}, {{ f_vals[1] }}, {{ f_vals[2] }}, {{ f_vals[3] }}, {{ f_vals[4] }}, {{ f_vals[5] }}],
+                backgroundColor: 'rgba(6, 182, 212, 0.65)',
+                borderColor: '#06b6d4',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            },
+            {
+                label: 'Combined (/100)',
+                data: [
+                    {{ i_vals[0]+f_vals[0] }}, {{ i_vals[1]+f_vals[1] }},
+                    {{ i_vals[2]+f_vals[2] }}, {{ i_vals[3]+f_vals[3] }},
+                    {{ i_vals[4]+f_vals[4] }}, {{ i_vals[5]+f_vals[5] }}
+                ],
+                backgroundColor: 'rgba(139, 92, 246, 0.55)',
+                borderColor: '#8b5cf6',
+                borderWidth: 1.5,
+                borderRadius: 4,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                labels: { color: '#475569', font: { family: 'Inter', size: 12, weight: '500' } }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleFont: { family: 'Outfit', size: 13 },
+                bodyFont: { family: 'Inter', size: 12 },
+                padding: 12,
+                borderRadius: 8,
+                callbacks: {
+                    label: function(c) {
+                        var mx = ['max 30', 'max 70', 'max 100'][c.datasetIndex];
+                        return ' ' + c.dataset.label + ': ' + c.parsed.y + ' (' + mx + ')';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: 100,
+                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#64748b', font: { family: 'Outfit', size: 12, weight: '600' } }
+            }
+        }
+    }
+});
+</script>
+
+</div></div>
+</body>
+</html>
+

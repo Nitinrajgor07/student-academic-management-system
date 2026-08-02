@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Offer Letter - {{ offer.company_name }}</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .letter-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 800px;
+            padding: 60px 80px;
+            box-sizing: border-box;
+            border-top: 8px solid #4f46e5;
+            position: relative;
+        }
+
+        .header-logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #4f46e5;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .company-info {
+            text-align: right;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .recipient-info {
+            margin-bottom: 40px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .recipient-info p {
+            margin: 4px 0;
+        }
+
+        .subject {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-decoration: underline;
+        }
+
+        .body-text {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #334155;
+            text-align: justify;
+        }
+
+        .body-text p {
+            margin-bottom: 20px;
+        }
+
+        .terms-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .term-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .term-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .term-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .signatures {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature-block {
+            width: 200px;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #cbd5e1;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+
+        .signature-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .print-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #4f46e5;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+            transition: background 0.2s;
+        }
+
+        .print-btn:hover {
+            background-color: #4338ca;
+        }
+
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+
+            .letter-container {
+                box-shadow: none;
+                border-top: none;
+                padding: 40px;
+            }
+
+            .print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="letter-container">
+        <button class="print-btn" onclick="window.print()">🖨️ Print Offer Letter</button>
+        
+        <div class="header-logo">
+            <span>{{ offer.company_name }}</span>
+            <div class="company-info">
+                <strong>{{ offer.company_name }} Ltd.</strong><br>
+                Tech City Phase-II, Bengaluru, Karnataka, India<br>
+                Email: hr@{{ offer.company_name.lower().replace(' ', '').replace('pvt', '').replace('ltd', '') }}.in
+            </div>
+        </div>
+
+        <div class="recipient-info">
+            <p><strong>Date:</strong> {{ offer.offer_date }}</p>
+            <br>
+            <p><strong>To,</strong></p>
+            <p><strong>Name:</strong> {{ offer.student_name }}</p>
+            <p><strong>Enrollment No:</strong> {{ offer.enrollment_no }}</p>
+        </div>
+
+        <div class="subject">
+            Subject: Official Offer of Employment for the position of {{ offer.job_role }}
+        </div>
+
+        <div class="body-text">
+            <p>Dear {{ offer.student_name }},</p>
+            
+            <p>Following your recent placement interview loops and evaluation, we are absolutely delighted to offer you employment with <strong>{{ offer.company_name }}</strong>. We were highly impressed with your academic records and performance in technical screening rounds.</p>
+            
+            <p>The key details of your employment terms and compensation package are summarized below:</p>
+
+            <div class="terms-grid">
+                <div class="term-item">
+                    <span class="term-label">Job Designation</span>
+                    <span class="term-value">{{ offer.job_role }}</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">Offered Compensation</span>
+                    <span class="term-value">{{ offer.package }}</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">Start Date</span>
+                    <span class="term-value">August 17, 2026</span>
+                </div>
+                <div class="term-item">
+                    <span class="term-label">Job Type</span>
+                    <span class="term-value">Full-Time Placement</span>
+                </div>
+            </div>
+
+            <p>Please review these terms. By clicking "Accept" on the University portal and signing below, you agree to comply with our code of conduct, employment policy, and confidentiality requirements.</p>
+
+            <p>Welcome to our team! We wish you a highly successful and prosperous career ahead.</p>
+        </div>
+
+        <div class="signatures">
+            <div class="signature-block">
+                <div class="signature-line"></div>
+                <div class="signature-title">Authorized Recruiter</div>
+                <div style="font-size: 11px; color:#94a3b8; margin-top:2px;">{{ offer.company_name }} HR Team</div>
+            </div>
+            
+            <div class="signature-block">
+                <div class="signature-line"></div>
+                <div class="signature-title">Candidate Signature</div>
+                <div style="font-size: 11px; color:#94a3b8; margin-top:2px;">{{ offer.student_name }}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% include 'base_head.html' %}
+    <title>Marks Management</title>
+    <style>
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* TABS */
+        .tab-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 10px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text-primary);
+        }
+
+        .tab.active-int {
+            background: var(--success-bg);
+            color: var(--success);
+            border-color: var(--success-border);
+        }
+
+        .tab.active-fin {
+            background: var(--accent-secondary-bg);
+            color: var(--accent-secondary);
+            border-color: var(--accent-secondary-border);
+        }
+
+        .limit-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .limit-int {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .limit-fin {
+            background: var(--accent-secondary-bg);
+            color: var(--accent-secondary);
+            border: 1px solid var(--accent-secondary-border);
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .form-row label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 90px;
+            flex-shrink: 0;
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .subject-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .subject-item label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .subject-item input,
+        .input-modern,
+        .mark-input {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827 !important;
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            border: 1px solid var(--glass-border) !important;
+            caret-color: #111827 !important;
+            opacity: 1 !important;
+        }
+
+        .subject-item input:focus,
+        .input-modern:focus,
+        .mark-input:focus {
+            color: #111827 !important;
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important;
+            caret-color: #111827 !important;
+            outline: none !important;
+        }
+
+        .subject-item input::placeholder,
+        .input-modern::placeholder,
+        .mark-input::placeholder {
+            color: #9ca3af !important;
+            opacity: 1 !important;
+        }
+
+        .subject-item .max-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .submit-btn {
+            height: 44px;
+            padding: 0 28px;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-int {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .btn-fin {
+            background: var(--accent-secondary-bg);
+            color: var(--accent-secondary);
+            border: 1px solid var(--accent-secondary-border);
+        }
+
+        .btn-int:hover { background: rgba(34, 197, 94, 0.15); }
+        .btn-fin:hover { background: rgba(6, 182, 212, 0.15); }
+
+        .type-int {
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }
+
+        .type-fin {
+            background: var(--accent-secondary-bg);
+            color: var(--accent-secondary);
+            border: 1px solid var(--accent-secondary-border);
+        }
+
+        .error-msg {
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .subjects-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .subjects-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+
+    <script>
+        // Helper to show/hide errors
+        function showError(formId, message) {
+            var msg = document.getElementById(formId + '_err');
+            if (msg) {
+                msg.style.display = 'block';
+                msg.textContent = '⚠️ ' + message;
+            }
+        }
+
+        function clearError(formId) {
+            var msg = document.getElementById(formId + '_err');
+            if (msg) {
+                msg.style.display = 'none';
+                msg.textContent = '';
+            }
+        }
+
+        // Toggle disabled state of mark input fields
+        function setMarkInputsDisabled(formId, disabled) {
+            var form = document.getElementById(formId);
+            if (!form) return;
+            var inputs = form.querySelectorAll('.mark-input');
+            inputs.forEach(function(inp) {
+                inp.disabled = disabled;
+                if (disabled) {
+                    inp.style.opacity = '0.6';
+                    inp.style.cursor = 'not-allowed';
+                } else {
+                    inp.style.opacity = '1';
+                    inp.style.cursor = 'text';
+                }
+            });
+        }
+
+        // Asynchronously check student ID presence
+        async function verifyStudentId(studentId) {
+            if (!studentId || studentId <= 0) return false;
+            try {
+                var response = await fetch('/check_student_exists/' + studentId);
+                if (response.ok) {
+                    var data = await response.json();
+                    return data.exists;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return false;
+        }
+
+        // Run validation check on student ID
+        async function handleStudentIdChange(input) {
+            var studentId = input.value;
+            var formId = input.form.id;
+            if (!studentId) {
+                showError(formId, 'Student not found.');
+                setMarkInputsDisabled(formId, true);
+                input.dataset.valid = "false";
+                input.style.borderColor = 'var(--error)';
+                return;
+            }
+
+            var exists = await verifyStudentId(studentId);
+            if (exists) {
+                input.dataset.valid = "true";
+                input.style.borderColor = 'var(--glass-border)';
+                // Only clear error if there are no marks validation errors
+                var maxVal = formId === 'intForm' ? 30 : 70;
+                checkAndClearFormErrors(formId, maxVal);
+                setMarkInputsDisabled(formId, false);
+            } else {
+                input.dataset.valid = "false";
+                input.style.borderColor = 'var(--error)';
+                showError(formId, 'Student not found.');
+                setMarkInputsDisabled(formId, true);
+            }
+        }
+
+        // Sanitize and validate mark input
+        function sanitizeAndValidate(input, maxVal) {
+            var formId = input.form.id;
+            var label = maxVal === 30 ? 'Internal' : 'Final';
+
+            // Get current raw value as string
+            var rawVal = input.value;
+
+            // Remove non-digit characters
+            var cleanVal = rawVal.replace(/[^0-9]/g, '');
+            if (rawVal !== cleanVal) {
+                input.value = cleanVal;
+            }
+
+            var val = parseInt(cleanVal, 10);
+
+            if (isNaN(val)) {
+                input.style.borderColor = 'var(--glass-border)';
+                checkAndClearFormErrors(formId, maxVal);
+                return;
+            }
+
+            if (val < 0) {
+                input.value = 0;
+                input.style.borderColor = 'var(--error)';
+                showError(formId, label + ' marks must be between 0 and ' + maxVal + '.');
+            } else if (val > maxVal) {
+                input.value = maxVal;
+                input.style.borderColor = 'var(--error)';
+                showError(formId, label + ' marks must be between 0 and ' + maxVal + '.');
+            } else {
+                input.style.borderColor = 'var(--glass-border)';
+                checkAndClearFormErrors(formId, maxVal);
+            }
+        }
+
+        // Check overall form errors
+        function checkAndClearFormErrors(formId, maxVal) {
+            var form = document.getElementById(formId);
+            if (!form) return;
+
+            var studentIdInput = form.querySelector('input[name="student_id"]');
+            if (!studentIdInput || studentIdInput.dataset.valid !== "true") {
+                showError(formId, 'Student not found.');
+                return;
+            }
+
+            var label = maxVal === 30 ? 'Internal' : 'Final';
+            var hasErrors = false;
+            var inputs = form.querySelectorAll('.mark-input');
+
+            for (var i = 0; i < inputs.length; i++) {
+                var val = parseInt(inputs[i].value, 10);
+                if (isNaN(val) || val < 0 || val > maxVal) {
+                    hasErrors = true;
+                    if (!isNaN(val) && (val < 0 || val > maxVal)) {
+                        inputs[i].style.borderColor = 'var(--error)';
+                    }
+                }
+            }
+
+            if (!hasErrors) {
+                clearError(formId);
+            } else {
+                showError(formId, label + ' marks must be between 0 and ' + maxVal + '.');
+            }
+        }
+
+        // Debounce helper
+        function debounce(func, wait) {
+            var timeout;
+            return function() {
+                var context = this, args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(function() {
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+
+        // Global onsubmit validation hook
+        async function validateMarksOnSubmit(formId, maxVal) {
+            var form = document.getElementById(formId);
+            var studentIdInput = form.querySelector('input[name="student_id"]');
+            var studentId = studentIdInput.value;
+            
+            // Check student id first
+            var exists = await verifyStudentId(studentId);
+            if (!exists) {
+                showError(formId, 'Student not found.');
+                setMarkInputsDisabled(formId, true);
+                studentIdInput.style.borderColor = 'var(--error)';
+                studentIdInput.dataset.valid = "false";
+                return false;
+            } else {
+                studentIdInput.style.borderColor = 'var(--glass-border)';
+                studentIdInput.dataset.valid = "true";
+            }
+
+            var valid = true;
+            var inputs = form.querySelectorAll('.mark-input');
+            var label = maxVal === 30 ? 'Internal' : 'Final';
+
+            inputs.forEach(function(inp) {
+                var valStr = inp.value;
+                var cleanVal = valStr.replace(/[^0-9]/g, '');
+                if (valStr !== cleanVal) {
+                    inp.value = cleanVal;
+                    valStr = cleanVal;
+                }
+
+                var val = parseInt(valStr, 10);
+                if (isNaN(val) || val < 0 || val > maxVal) {
+                    inp.style.borderColor = 'var(--error)';
+                    valid = false;
+                } else {
+                    inp.style.borderColor = 'var(--glass-border)';
+                }
+            });
+
+            if (!valid) {
+                showError(formId, label + ' marks must be between 0 and ' + maxVal + '.');
+                return false;
+            }
+
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var forms = ['intForm', 'finForm'];
+            forms.forEach(function(formId) {
+                var form = document.getElementById(formId);
+                if (!form) return;
+                setMarkInputsDisabled(formId, true);
+
+                // Attach ID validation listener
+                var studentIdInput = form.querySelector('input[name="student_id"]');
+                if (studentIdInput) {
+                    studentIdInput.dataset.valid = "false";
+                    
+                    var validateId = debounce(function() {
+                        handleStudentIdChange(studentIdInput);
+                    }, 250);
+
+                    studentIdInput.addEventListener('input', validateId);
+                    studentIdInput.addEventListener('change', validateId);
+                    studentIdInput.addEventListener('paste', function() {
+                        setTimeout(validateId, 0);
+                    });
+
+                    studentIdInput.addEventListener('keydown', function(e) {
+                        if (e.key === '.' || e.key === ',' || e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                            e.preventDefault();
+                        }
+                    });
+
+                    studentIdInput.addEventListener('wheel', function(e) {
+                        e.preventDefault();
+                        var step = 1;
+                        var current = parseInt(studentIdInput.value, 10) || 0;
+                        var next = current + (e.deltaY < 0 ? step : -step);
+                        if (next < 1) next = 1;
+                        studentIdInput.value = next;
+                        validateId();
+                    });
+                }
+
+                // Attach marks inputs validation listeners
+                var maxVal = formId === 'intForm' ? 30 : 70;
+                var inputs = form.querySelectorAll('.mark-input');
+                inputs.forEach(function(input) {
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === '.' || e.key === ',' || e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                            e.preventDefault();
+                        }
+                    });
+
+                    input.addEventListener('input', function() {
+                        sanitizeAndValidate(input, maxVal);
+                    });
+
+                    input.addEventListener('paste', function() {
+                        setTimeout(function() {
+                            sanitizeAndValidate(input, maxVal);
+                        }, 0);
+                    });
+
+                    input.addEventListener('wheel', function(e) {
+                        e.preventDefault();
+                        if (input.disabled) return;
+                        var step = parseInt(input.getAttribute('step') || 1, 10);
+                        var current = parseInt(input.value, 10) || 0;
+                        var next = current + (e.deltaY < 0 ? step : -step);
+                        if (next >= 0 && next <= maxVal) {
+                            input.value = next;
+                        } else if (next > maxVal) {
+                            input.value = maxVal;
+                        } else {
+                            input.value = 0;
+                        }
+                        sanitizeAndValidate(input, maxVal);
+                    });
+                });
+
+                // Hijack submit to execute async verification
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    var saveBtn = form.querySelector('.submit-btn');
+                    if (saveBtn) saveBtn.disabled = true;
+
+                    var isVal = await validateMarksOnSubmit(formId, maxVal);
+                    if (isVal) {
+                        form.submit();
+                    } else {
+                        if (saveBtn) saveBtn.disabled = false;
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+{% set active_page = 'marks' %}
+{% include 'admin_sidebar.html' %}
+
+<div class="page-header">
+    <h2>📝 Student Marks Management</h2>
+</div>
+
+<!-- TABS -->
+<div class="tab-row">
+    <a href="/marks?type=internal" class="tab {% if selected_type == 'internal' %}active-int{% endif %}">
+        📘 Internal Marks (Max 30)
+    </a>
+    <a href="/marks?type=final" class="tab {% if selected_type == 'final' %}active-fin{% endif %}">
+        📗 Final Marks (Max 70)
+    </a>
+</div>
+
+<!-- ===== INTERNAL MARKS FORM ===== -->
+{% if selected_type == 'internal' %}
+<div class="glass-card" style="margin-bottom: 24px;">
+    <div class="card-title" style="font-size: 12px; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between;">
+        <span>📘 Add Internal Marks</span>
+        <span class="limit-badge limit-int">Max: 30 per subject</span>
+    </div>
+
+    <div id="intForm_err" class="error-msg"></div>
+
+    <form id="intForm" method="POST" action="/add_internal_marks">
+        <div class="form-row">
+            <label class="form-label">Student ID</label>
+            <input class="input-modern" type="number" name="student_id" style="width: 140px;" placeholder="e.g. 1" required min="1">
+        </div>
+
+        <div class="subjects-grid">
+            <div class="subject-item">
+                <label>☕ Java</label>
+                <input class="input-modern mark-input" type="number" name="java" placeholder="0" min="0" max="30" required>
+                <span class="max-hint">Max: 30</span>
+            </div>
+            <div class="subject-item">
+                <label>🐍 Python</label>
+                <input class="input-modern mark-input" type="number" name="python" placeholder="0" min="0" max="30" required>
+                <span class="max-hint">Max: 30</span>
+            </div>
+            <div class="subject-item">
+                <label>🤖 ML</label>
+                <input class="input-modern mark-input" type="number" name="ml" placeholder="0" min="0" max="30" required>
+                <span class="max-hint">Max: 30</span>
+            </div>
+            <div class="subject-item">
+                <label>⛓️ Blockchain</label>
+                <input class="input-modern mark-input" type="number" name="blockchain" placeholder="0" min="0" max="30" required>
+                <span class="max-hint">Max: 30</span>
+            </div>
+            <div class="subject-item">
+                <label>🗄️ DS</label>
+                <input class="input-modern mark-input" type="number" name="ds" placeholder="0" min="0" max="30" required>
+                <span class="max-hint">Max: 30</span>
+            </div>
+            <div class="subject-item">
+                <label>🗃️ ADBMS</label>
+                <input class="input-modern mark-input" type="number" name="adbms" placeholder="0" min="0" max="30" required>
+                <span class="max-hint">Max: 30</span>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn btn-int">💾 Save Internal Marks</button>
+    </form>
+</div>
+
+<!-- ===== FINAL MARKS FORM ===== -->
+{% else %}
+<div class="glass-card" style="margin-bottom: 24px;">
+    <div class="card-title" style="font-size: 12px; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between;">
+        <span>📗 Add Final Marks</span>
+        <span class="limit-badge limit-fin">Max: 70 per subject</span>
+    </div>
+
+    <div id="finForm_err" class="error-msg"></div>
+
+    <form id="finForm" method="POST" action="/add_final_marks">
+        <div class="form-row">
+            <label class="form-label">Student ID</label>
+            <input class="input-modern" type="number" name="student_id" style="width: 140px;" placeholder="e.g. 1" required min="1">
+        </div>
+
+        <div class="subjects-grid">
+            <div class="subject-item">
+                <label>☕ Java</label>
+                <input class="input-modern mark-input" type="number" name="java" placeholder="0" min="0" max="70" required>
+                <span class="max-hint">Max: 70</span>
+            </div>
+            <div class="subject-item">
+                <label>🐍 Python</label>
+                <input class="input-modern mark-input" type="number" name="python" placeholder="0" min="0" max="70" required>
+                <span class="max-hint">Max: 70</span>
+            </div>
+            <div class="subject-item">
+                <label>🤖 ML</label>
+                <input class="input-modern mark-input" type="number" name="ml" placeholder="0" min="0" max="70" required>
+                <span class="max-hint">Max: 70</span>
+            </div>
+            <div class="subject-item">
+                <label>⛓️ Blockchain</label>
+                <input class="input-modern mark-input" type="number" name="blockchain" placeholder="0" min="0" max="70" required>
+                <span class="max-hint">Max: 70</span>
+            </div>
+            <div class="subject-item">
+                <label>🗄️ DS</label>
+                <input class="input-modern mark-input" type="number" name="ds" placeholder="0" min="0" max="70" required>
+                <span class="max-hint">Max: 70</span>
+            </div>
+            <div class="subject-item">
+                <label>🗃️ ADBMS</label>
+                <input class="input-modern mark-input" type="number" name="adbms" placeholder="0" min="0" max="70" required>
+                <span class="max-hint">Max: 70</span>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn btn-fin">💾 Save Final Marks</button>
+    </form>
+</div>
+{% endif %}
+
+<!-- ===== ALL MARKS TABLE ===== -->
+<div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+    <div class="card-title" style="margin: 20px 20px 10px 20px; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">📋 All Marks Records</div>
+    {% if data %}
+    <div class="table-container" style="border: none; border-radius: 0;">
+        <table class="table-modern" style="text-align: center;">
+            <thead>
+                <tr>
+                    <th style="padding-left: 24px; text-align: center; width: 100px;">SR. NO.</th>
+                    <th style="width: 140px; text-align: center;">Type</th>
+                    <th>☕ Java</th>
+                    <th>🐍 Python</th>
+                    <th>🤖 ML</th>
+                    <th>⛓️ Blockchain</th>
+                    <th>🗄️ DS</th>
+                    <th>🗃️ ADBMS</th>
+                    <th style="width: 100px; text-align: center;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td style="padding-left: 24px; text-align: center; font-weight: 600; color: var(--text-primary);">{{ loop.index }}</td>
+                    <td>
+                        {% if row[2] == 'internal' %}
+                        <span class="badge-modern type-int">Internal /30</span>
+                        {% else %}
+                        <span class="badge-modern type-fin">Final /70</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 500;">{{ row[3] }}</td>
+                    <td style="font-weight: 500;">{{ row[4] }}</td>
+                    <td style="font-weight: 500;">{{ row[5] }}</td>
+                    <td style="font-weight: 500;">{{ row[6] }}</td>
+                    <td style="font-weight: 500;">{{ row[7] }}</td>
+                    <td style="font-weight: 500;">{{ row[8] }}</td>
+                    <td style="text-align: center; font-weight: 700; color: var(--accent-primary);">
+                        {{ (row[3] or 0) + (row[4] or 0) + (row[5] or 0) + (row[6] or 0) + (row[7] or 0) + (row[8] or 0) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="color: var(--text-muted); text-align: center; padding: 40px; font-weight: 500;">No marks records entered yet.</div>
+    {% endif %}
+</div>
+
+</div></div>
+</body>
+</html>
